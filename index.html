@@ -48,11 +48,10 @@
 body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:15px;min-height:100vh;}
 nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;position:sticky;top:0;z-index:100;position:relative;}
 nav button{background:none;border:none;color:var(--text2);cursor:pointer;font-size:11px;font-weight:500;padding:10px 2px 8px;transition:.2s;border-bottom:2px solid transparent;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1;min-width:0;}
-nav button .nav-label{font-size:10.5px;}
+nav button .nav-label{font-size:11.5px;font-weight:500;}
 nav.has-badge{padding-right:30px;}
-nav button .nav-icon{font-size:17px;line-height:1;width:19px;height:19px;display:flex;align-items:center;justify-content:center;}
+nav button .nav-icon{font-size:17px;line-height:1;width:23px;height:23px;display:flex;align-items:center;justify-content:center;}
 nav button .nav-icon svg{width:100%;height:100%;}
-nav button .nav-label{font-size:11px;font-weight:500;}
 nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
 nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
 .page{display:none;padding:16px;max-width:900px;margin:0 auto;}
@@ -96,9 +95,9 @@ textarea{resize:vertical;min-height:52px;}
 .time-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
 .t24-picker{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:7px;transition:border .2s;}
 .t24-picker.err-field{border-color:var(--danger)!important;background:rgba(239,68,68,.08)!important;}
-.t24-native{width:100%;background:transparent!important;border:none!important;color:var(--text);font-size:15px;font-weight:600;padding:9px 11px!important;outline:none;cursor:pointer;}
-.t24-native::-webkit-calendar-picker-indicator{filter:invert(.65);cursor:pointer;opacity:0.85;padding:6px;border-radius:5px;transition:.15s;}
-.t24-native::-webkit-calendar-picker-indicator:hover{opacity:1;background:rgba(255,255,255,.12);}
+.t24-native{width:100%;background:transparent!important;border:none!important;color:var(--text);font-size:15px;font-weight:600;padding:9px 8px 9px 11px!important;outline:none;cursor:pointer;}
+.t24-native::-webkit-calendar-picker-indicator{filter:invert(.7) brightness(1.3);cursor:pointer;opacity:1;width:22px;height:22px;padding:5px;margin-left:4px;border-radius:6px;background:rgba(255,255,255,.10);transition:.15s;}
+.t24-native::-webkit-calendar-picker-indicator:hover{background:rgba(255,255,255,.22);transform:scale(1.08);}
 .mult-row{display:flex;gap:14px;margin-top:8px;}
 .mult-check{display:flex;align-items:center;gap:5px;cursor:pointer;}
 .mult-check input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
@@ -232,8 +231,8 @@ textarea{resize:vertical;min-height:52px;}
   .page{padding:32px 40px;max-width:840px;}
   nav{justify-content:center;}
   nav button{flex:0 0 auto;padding:18px 36px 16px;font-size:15px;}
-  nav button .nav-icon{width:24px;height:24px;}
-  nav button .nav-label{font-size:14px;}
+  nav button .nav-icon{width:28px;height:28px;}
+  nav button .nav-label{font-size:15.5px;}
   .local-badge{top:11px;right:22px;width:30px;height:30px;}
   nav.has-badge{padding-right:0;}
 
@@ -344,7 +343,7 @@ textarea{resize:vertical;min-height:52px;}
 <nav>
   <button class="active" onclick="showPage('prideti',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span class="nav-label" data-i="nav_add">Pridėti</span></button>
   <button onclick="showPage('irasymai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="13" y2="18"/></svg></span><span class="nav-label" data-i="nav_entries">Įrašai</span></button>
-  <button onclick="showPage('finansai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2"/><path d="M16.1 11a3.1 3.1 0 0 0-5.1.5 3.1 3.1 0 0 0 0 3 3.1 3.1 0 0 0 5.1.5" stroke-width="1.8"/><path d="M9.3 12.3h4M9.3 14.3h3.4" stroke-width="1.8"/></svg></span><span class="nav-label" data-i="nav_finance">Finansai</span></button>
+  <button onclick="showPage('finansai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2"/><path d="M15.4 11a3 3 0 0 0-4.9.5 3 3 0 0 0 0 3 3 3 0 0 0 4.9.5" stroke-width="1.8"/><path d="M8.9 12.6h3.8M8.9 14.4h3.3" stroke-width="1.8"/></svg></span><span class="nav-label" data-i="nav_finance">Finansai</span></button>
   <button onclick="showPage('nustatymai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="nav-label" data-i="nav_settings">Nustatymai</span></button>
   <div class="local-badge" id="local-badge" style="display:none" title="Duomenys saugomi šiame įrenginyje" onclick="goToSettingsForCloud()">
     <span class="local-badge-cloud"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 19a4.5 4.5 0 0 1-.5-8.98A6 6 0 0 1 17.6 8.06 5 5 0 0 1 17 18l-.5.02V19z" opacity="0.55"/></svg></span><span class="local-badge-slash"></span>
@@ -1093,8 +1092,14 @@ function time24Picker(id,value,pfx,idx,field){
   </div>`;
 }
 function t24TryShowPicker(el){
-  if(el.showPicker){
-    try{el.showPicker();}catch(e){}
+  el.focus();
+  if(typeof el.showPicker === 'function'){
+    try{
+      el.showPicker();
+    }catch(err){
+      // showPicker can throw if not called from a direct user gesture in some browsers;
+      // focusing the field still lets the user type or use native spinner arrows.
+    }
   }
 }
 function t24GetValue(id){
