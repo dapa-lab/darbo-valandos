@@ -65,7 +65,7 @@ nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
 .green{color:var(--success);}.blue{color:var(--accent);}.purple{color:#a78bfa;}.red{color:var(--danger);}
 .lbl{display:block;color:var(--text2);font-size:12px;margin-bottom:4px;}
 input[type=text],input[type=date],input[type=time],input[type=number],select,textarea{
-  width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;
+  width:100%;background:var(--surface3,var(--bg));border:1px solid var(--border);border-radius:7px;
   color:var(--text);font-size:14px;padding:8px 11px;outline:none;transition:border .2s,background .2s;
 }
 input:focus,select:focus,textarea:focus{border-color:var(--accent);}
@@ -87,13 +87,13 @@ textarea{resize:vertical;min-height:52px;}
 .btn-dout:hover{background:var(--danger);color:#fff;}
 .btn-neutral{border-color:var(--border)!important;color:var(--text2)!important;}
 .btn-neutral:hover{background:var(--surface2)!important;color:var(--text)!important;border-color:var(--accent)!important;}
-.btn-add-obj{width:100%;margin-top:6px;background:var(--surface2);border:1px dashed var(--border);color:var(--text2);border-radius:7px;padding:8px;cursor:pointer;font-size:13px;transition:.2s;}
+.btn-add-obj{width:100%;margin-top:6px;background:var(--surface3,var(--bg));border:1px dashed var(--border);color:var(--text2);border-radius:7px;padding:8px;cursor:pointer;font-size:13px;transition:.2s;}
 .btn-add-obj:hover{border-color:var(--accent);color:var(--accent);}
 .obj-block{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;}
 .obj-block-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .obj-block-hdr span{color:var(--text2);font-size:12px;font-weight:600;}
 .time-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
-.t24-picker{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:7px;transition:border .2s;}
+.t24-picker{display:flex;align-items:center;background:var(--surface3,var(--bg));border:1px solid var(--border);border-radius:7px;transition:border .2s;}
 .t24-picker.err-field{border-color:var(--danger)!important;background:rgba(239,68,68,.08)!important;}
 .t24-native{width:100%;background:transparent!important;border:none!important;color:var(--text);font-size:15px;font-weight:600;padding:9px 8px 9px 11px!important;outline:none;cursor:pointer;}
 .t24-native::-webkit-calendar-picker-indicator{filter:invert(.7) brightness(1.3);cursor:pointer;opacity:1;width:22px;height:22px;padding:5px;margin-left:4px;border-radius:6px;background:rgba(255,255,255,.10);transition:.15s;}
@@ -343,7 +343,7 @@ textarea{resize:vertical;min-height:52px;}
 <nav>
   <button class="active" onclick="showPage('prideti',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span class="nav-label" data-i="nav_add">Pridėti</span></button>
   <button onclick="showPage('irasymai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="13" y2="18"/></svg></span><span class="nav-label" data-i="nav_entries">Įrašai</span></button>
-  <button onclick="showPage('finansai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2"/><path d="M15.4 11a3 3 0 0 0-4.9.5 3 3 0 0 0 0 3 3 3 0 0 0 4.9.5" stroke-width="1.8"/><path d="M8.9 12.6h3.8M8.9 14.4h3.3" stroke-width="1.8"/></svg></span><span class="nav-label" data-i="nav_finance">Finansai</span></button>
+  <button onclick="showPage('finansai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M14.14 11.70 A2.8 2.8 0 1 0 14.14 15.30" stroke-width="1.7"/><line x1="8.7" y1="12.6" x2="12.3" y2="12.6" stroke-width="1.7"/><line x1="8.7" y1="14.4" x2="12.3" y2="14.4" stroke-width="1.7"/></svg></span><span class="nav-label" data-i="nav_finance">Finansai</span></button>
   <button onclick="showPage('nustatymai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="nav-label" data-i="nav_settings">Nustatymai</span></button>
   <div class="local-badge" id="local-badge" style="display:none" title="Duomenys saugomi šiame įrenginyje" onclick="goToSettingsForCloud()">
     <span class="local-badge-cloud"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 19a4.5 4.5 0 0 1-.5-8.98A6 6 0 0 1 17.6 8.06 5 5 0 0 1 17 18l-.5.02V19z" opacity="0.55"/></svg></span><span class="local-badge-slash"></span>
@@ -445,7 +445,7 @@ textarea{resize:vertical;min-height:52px;}
   <div class="rate-hint" id="rate-hint" style="display:none" data-i="rate_hint_text">👋 Sveiki! Pirmiausia įveskite savo valandinį atlygį.</div>
   <div class="card">
     <div class="card-title" data-i="set_general">Bendra</div>
-    <div class="setting-row"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="s-desc">€/val</div></div><input type="number" id="set-rate" placeholder="€/val" min="0" step="0.5" onchange="saveSettings();hideRateHint()" onkeydown="if(event.key==='Enter')hideRateHint()"></div>
+    <div class="setting-row"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="s-desc" data-i="rate_unit">€/val</div></div><input type="number" id="set-rate" placeholder="€/val" min="0" step="0.5" onchange="saveSettings();hideRateHint()" onkeydown="if(event.key==='Enter')hideRateHint()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_lunch">Pietų pertrauka</div><div class="s-desc" data-i="set_lunch_desc">Minutės</div></div><input type="number" id="set-lunch" value="30" min="0" onchange="saveSettings()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_start">Pradžios laikas</div></div><div id="set-start-holder"></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_end">Pabaigos laikas</div></div><div id="set-end-holder"></div></div>
@@ -584,7 +584,7 @@ const LANGS={
     manage_tags_btn:'Redaguoti sąrašą',manage_tags_title:'Komentarų sąrašas',new_tag_ph:'Naujas komentaras...',btn_close:'Uždaryti',confirm_del_tag:'Ištrinti šį komentarą iš sąrašo?',
     tag_default_salary:'Alga',tag_default_perdiem:'Komandiruotpinigiai',tag_default_mail:'Paštas',
     btn_add:'＋ Pridėti',btn_save:'Išsaugoti',btn_cancel:'Atšaukti',btn_delete_yes:'Taip, ištrinti',
-    set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',
+    set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',rate_unit:'€/val',
     rate_hint_text:'👋 Sveiki! Pirmiausia įveskite savo valandinį atlygį.',
     set_start:'Pradžios laikas',set_end:'Pabaigos laikas',set_theme:'Tema',set_lang:'Kalba',
     set_data:'Duomenys',set_import:'Importuoti',set_sync:'Saugojimas',sync_active:'prisijungta debesyje',
@@ -616,7 +616,7 @@ const LANGS={
     manage_tags_btn:'Edit list',manage_tags_title:'Comment list',new_tag_ph:'New comment...',btn_close:'Close',confirm_del_tag:'Delete this comment from the list?',
     tag_default_salary:'Salary',tag_default_perdiem:'Per diem',tag_default_mail:'Mail',
     btn_add:'＋ Add',btn_save:'Save',btn_cancel:'Cancel',btn_delete_yes:'Yes, delete',
-    set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',
+    set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',rate_unit:'€/hr',
     rate_hint_text:'👋 Welcome! First, enter your hourly rate.',
     set_start:'Start time',set_end:'End time',set_theme:'Theme',set_lang:'Language',
     set_data:'Data',set_import:'Import',set_sync:'Storage',sync_active:'synced to cloud',
@@ -648,7 +648,7 @@ const LANGS={
     manage_tags_btn:'Изменить список',manage_tags_title:'Список комментариев',new_tag_ph:'Новый комментарий...',btn_close:'Закрыть',confirm_del_tag:'Удалить этот комментарий из списка?',
     tag_default_salary:'Зарплата',tag_default_perdiem:'Суточные',tag_default_mail:'Почта',
     btn_add:'＋ Добавить',btn_save:'Сохранить',btn_cancel:'Отмена',btn_delete_yes:'Да, удалить',
-    set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',
+    set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',rate_unit:'€/ч',
     rate_hint_text:'👋 Добро пожаловать! Сначала введите свою почасовую ставку.',
     set_start:'Начало работы',set_end:'Конец работы',set_theme:'Тема',set_lang:'Язык',
     set_data:'Данные',set_import:'Импорт',set_sync:'Хранение',sync_active:'синхронизировано с облаком',
@@ -1092,14 +1092,8 @@ function time24Picker(id,value,pfx,idx,field){
   </div>`;
 }
 function t24TryShowPicker(el){
-  el.focus();
   if(typeof el.showPicker === 'function'){
-    try{
-      el.showPicker();
-    }catch(err){
-      // showPicker can throw if not called from a direct user gesture in some browsers;
-      // focusing the field still lets the user type or use native spinner arrows.
-    }
+    try{el.showPicker();}catch(err){}
   }
 }
 function t24GetValue(id){
@@ -1118,8 +1112,14 @@ function t24OnChange(selEl){
   if(arr&&arr[idx]){
     arr[idx][field]=newVal;
     document.getElementById(baseId+'-wrap')?.classList.remove('err-field');
-    if(pfx==='add'){addChange(idx);}
-    else if(pfx==='edit'){editChange();}
+    // Lightweight update: only refresh this block's hours text + grand total,
+    // WITHOUT rebuilding innerHTML (which would steal focus from the native time input mid-typing).
+    const isFirst=idx===0;
+    const h=calcH(arr[idx],isFirst);
+    const hoursEl=document.getElementById(pfx+'-hrs-'+idx);
+    if(hoursEl)hoursEl.textContent=h.toFixed(2)+' '+t('week_val');
+    if(pfx==='add'){updateTotalH();}
+    else if(pfx==='edit'){updateEditTotalH();}
   }
 }
 
@@ -1149,7 +1149,7 @@ function renderBlocksTo(blocks,container,pfx,removeFn,multFn,changeFn,totalFn){
         <label class="mult-check"><input type="checkbox" ${b.mult===1.5?'checked':''} onchange="${multFn}(${i},1.5)"><span>×1.5</span></label>
         <label class="mult-check"><input type="checkbox" ${b.mult===2?'checked':''} onchange="${multFn}(${i},2)"><span>×2</span></label>
       </div>
-      <div class="hours-disp">${h.toFixed(2)} ${t('week_val')}</div>
+      <div class="hours-disp" id="${pfx}-hrs-${i}">${h.toFixed(2)} ${t('week_val')}</div>
     </div>`;
   }).join('');
 }
@@ -1466,14 +1466,20 @@ function renderPayList(payments){
       </div>
     </div>`).join('');
   const dl=document.getElementById('pay-comment-list');
-  if(dl)dl.innerHTML=tags.map(tg=>`<option value="${escH(tg)}">`).join('');
+  if(dl)dl.innerHTML=tags.map(tg=>`<option value="${escH(displayTagText(tg))}">`).join('');
 }
 
 function getPayCommentTags(){
   if(!data.payCommentTags){
-    data.payCommentTags=[t('tag_default_salary'),t('tag_default_perdiem'),t('tag_default_mail')];
+    data.payCommentTags=['__DEFAULT_SALARY__','__DEFAULT_PERDIEM__','__DEFAULT_MAIL__'];
   }
   return data.payCommentTags;
+}
+function displayTagText(tg){
+  if(tg==='__DEFAULT_SALARY__')return t('tag_default_salary');
+  if(tg==='__DEFAULT_PERDIEM__')return t('tag_default_perdiem');
+  if(tg==='__DEFAULT_MAIL__')return t('tag_default_mail');
+  return tg;
 }
 
 // ===== TAG MANAGER =====
@@ -1491,7 +1497,7 @@ function renderTagManagerList(){
   if(!tags.length){el.innerHTML=`<div style="color:var(--text2);font-size:13px">${t('empty')}</div>`;return;}
   el.innerHTML=tags.map((tg,i)=>`
     <div style="display:flex;gap:8px;align-items:center">
-      <input type="text" value="${escH(tg)}" style="flex:1" onchange="renameTag(${i},this.value)">
+      <input type="text" value="${escH(displayTagText(tg))}" style="flex:1" onchange="renameTag(${i},this.value)">
       <button class="btn-dout btn-sm" onclick="deleteTagConfirm(${i})">✕</button>
     </div>`).join('');
 }
