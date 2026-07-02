@@ -970,8 +970,6 @@ function applyTheme(){
   const r=document.documentElement.style;
   Object.entries(palette).forEach(([k,v])=>r.setProperty('--'+k,v));
   document.documentElement.dataset.mode=mode;
-  const themeMeta=document.querySelector('meta[name="theme-color"]');
-  if(themeMeta)themeMeta.setAttribute('content',palette.bg);
   document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.id==='mode-'+(mode==='dark'?'night':'day')));
 }
 function buildThemeGrid(){/* kept as no-op for backwards-compatible inline calls */}
