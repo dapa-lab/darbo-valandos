@@ -37,6 +37,7 @@
   });
 </script>
 <style>
+/* #region Theme */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 :root{
   --bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;
@@ -135,6 +136,9 @@ textarea{resize:vertical;min-height:52px;}
 .icon-act-btn{background:var(--surface);border:1px solid var(--border);color:var(--text2);border-radius:6px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;padding:0;}
 .icon-act-btn:hover{border-color:var(--accent);background:var(--surface2);color:var(--accent);}
 .icon-act-del:hover{border-color:var(--danger);color:var(--danger);}
+/* #endregion Theme */
+
+/* #region Components */
 @media (hover:none) and (pointer:coarse){
   .no-touch-only{display:none!important;}
 }
@@ -164,10 +168,6 @@ textarea{resize:vertical;min-height:52px;}
 .setting-row:last-child{border:none;}
 .setting-row input,.setting-row select{width:130px;}
 .s-label{font-size:14px;}.s-desc{font-size:12px;color:var(--text2);margin-top:2px;}
-.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;}
-.theme-btn{border:2px solid var(--border);border-radius:8px;padding:10px 6px;cursor:pointer;text-align:center;font-size:12px;font-weight:600;transition:.2s;background:var(--surface2);color:var(--text2);}
-.theme-btn.active{border-color:var(--accent);color:var(--accent);}
-.theme-swatch{width:100%;height:20px;border-radius:4px;margin-bottom:5px;}
 .lang-row{display:flex;gap:8px;margin-top:4px;}
 .lang-btn{flex:1;border:2px solid var(--border);border-radius:7px;padding:8px;cursor:pointer;text-align:center;font-size:13px;font-weight:700;background:var(--surface2);color:var(--text2);transition:.2s;}
 .lang-btn.active{border-color:var(--accent);color:var(--accent);}
@@ -225,6 +225,9 @@ textarea{resize:vertical;min-height:52px;}
 .sync-dot.syncing{background:var(--warning);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
+/* #endregion Components */
+
+/* #region Layout */
 /* ===== RESPONSIVE: TABLET / DESKTOP ===== */
 @media (min-width: 700px){
   body{font-size:17px;}
@@ -301,8 +304,6 @@ textarea{resize:vertical;min-height:52px;}
   .login-title{font-size:28px;}
   .login-sub{font-size:15px;}
 
-  .theme-grid{grid-template-columns:repeat(4,1fr);gap:10px;}
-  .theme-btn{padding:13px 8px;font-size:13px;}
   .setting-row{padding:14px 0;}
   .s-label{font-size:15px;}
   .s-desc{font-size:13px;}
@@ -312,6 +313,24 @@ textarea{resize:vertical;min-height:52px;}
   .page{max-width:960px;}
   .summary-grid{grid-template-columns:repeat(4,1fr);}
 }
+
+/* #endregion Layout */
+
+/* #region Performance + Motion */
+.teal{color:#2dd4bf;}
+.mode-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 0;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:5px;}
+.mode-btn{border:0;border-radius:10px;background:transparent;color:var(--text2);font:inherit;font-weight:800;padding:10px 12px;cursor:pointer;transition:transform .16s ease,background-color .16s ease,color .16s ease;}
+.mode-btn.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.16);}
+body{background:var(--bg);transition:background-color .22s ease,color .22s ease;}
+.card,.stat,.obj-block,.entry,.modal,.confirm-box,.user-bar,nav{box-shadow:0 6px 18px rgba(0,0,0,.12);transition:background-color .18s ease,border-color .18s ease,color .18s ease;}
+.btn,.lang-btn,.icon-act-btn,.cal-day,.entry,.mode-btn{will-change:transform;}
+.btn:hover,.lang-btn:hover,.cal-day:hover{transform:translateY(-1px);}
+.btn:active,.lang-btn:active,.mode-btn:active{transform:translateY(1px) scale(.99);}
+.page.active{animation:pageIn .18s ease both;}@keyframes pageIn{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:none}}
+.entry-wrap{animation:itemIn .18s ease both;}@keyframes itemIn{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+@media (max-width:520px){.page{padding:12px 10px 82px}.card{padding:14px;border-radius:16px}.summary-grid{grid-template-columns:1fr 1fr;gap:8px}.stat{padding:11px;border-radius:14px}.stat-val{font-size:18px}.pay-row,.filter-dates,.filter-obj-row{gap:6px}.time-row{grid-template-columns:1fr;gap:10px}nav{position:fixed;left:10px;right:10px;bottom:10px;top:auto;border:1px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.22)}nav button{padding:9px 2px 8px}.user-bar{position:sticky;top:0;z-index:80}.login-box{padding:30px 22px}.cal-day{height:42px}.entry{padding:12px}.entry-actions{width:154px}.entry.swiped{transform:translateX(-154px)}}
+/* #endregion Performance + Motion */
 </style>
 </head>
 <body>
@@ -343,13 +362,14 @@ textarea{resize:vertical;min-height:52px;}
   <button onclick="doLogout()" id="logout-btn" data-i="logout_btn">Atsijungti</button>
 </div>
 <nav>
-  <button class="active" onclick="showPage('prideti',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span class="nav-label" data-i="nav_add">Pridėti</span></button>
-  <button onclick="showPage('irasymai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="13" y2="18"/></svg></span><span class="nav-label" data-i="nav_entries">Įrašai</span></button>
-  <button onclick="showPage('finansai',this)"><span class="nav-icon"><svg viewBox="1 4.5 22 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M14.14 11.70 A2.8 2.8 0 1 0 14.14 15.30" stroke-width="1.7"/><line x1="8.7" y1="12.6" x2="12.3" y2="12.6" stroke-width="1.7"/><line x1="8.7" y1="14.4" x2="12.3" y2="14.4" stroke-width="1.7"/></svg></span><span class="nav-label" data-i="nav_finance">Finansai</span></button>
-  <button onclick="showPage('nustatymai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="nav-label" data-i="nav_settings">Nustatymai</span></button>
-  <div class="local-badge" id="local-badge" style="display:none" title="Duomenys saugomi šiame įrenginyje" onclick="goToSettingsForCloud()">
-    <span class="local-badge-cloud"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 19a4.5 4.5 0 0 1-.5-8.98A6 6 0 0 1 17.6 8.06 5 5 0 0 1 17 18l-.5.02V19z" opacity="0.55"/></svg></span><span class="local-badge-slash"></span>
+  <div class="local-badge" id="local-badge" style="display:none" onclick="goToSettingsForCloud()" title="Local mode" data-i-title="local_mode_title">
+    <div class="local-badge-cloud"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9Z"/></svg></div>
+    <div class="local-badge-slash"></div>
   </div>
+  <button class="active" onclick="showPage('prideti',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span><span class="nav-label" data-i="nav_add">Pridėti</span></button>
+  <button onclick="showPage('irasymai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h6"/><path d="M9 3h6a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h1V5a2 2 0 0 1 2-2Z"/><path d="M8 12h8M8 16h5"/></svg></span><span class="nav-label" data-i="nav_entries">Įrašai</span></button>
+  <button onclick="showPage('finansai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M16 10h2a2 2 0 0 1 0 4h-2a2 2 0 0 1 0-4Z"/><path d="M7 6V4h10v2"/></svg></span><span class="nav-label" data-i="nav_finance">Finansai</span></button>
+  <button onclick="showPage('nustatymai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.05.05a2 2 0 1 1-2.83 2.83l-.05-.05A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.07a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.88.34l-.05.05a2 2 0 1 1-2.83-2.83l.05-.05A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.07a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.88l-.05-.05a2 2 0 1 1 2.83-2.83l.05.05A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.07a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.05-.05a2 2 0 1 1 2.83 2.83l-.05.05A1.7 1.7 0 0 0 19.4 9c.2.61.77 1 1.55 1H21a2 2 0 1 1 0 4h-.07A1.7 1.7 0 0 0 19.4 15Z"/></svg></span><span class="nav-label" data-i="nav_settings">Nustatymai</span></button>
 </nav>
 
 <!-- PRIDĖTI -->
@@ -379,6 +399,7 @@ textarea{resize:vertical;min-height:52px;}
   <div class="summary-grid">
     <div class="stat"><div class="stat-label" data-i="stat_days">Dirbta dienų</div><div class="stat-val blue" id="s-days">0</div></div>
     <div class="stat"><div class="stat-label" data-i="stat_hours">Viso valandų</div><div class="stat-val" id="s-hours">0</div></div>
+    <div class="stat"><div class="stat-label" data-i="stat_vacation">Atostogų likutis</div><div class="stat-val teal" id="s-vacation">0 d.</div></div>
     <div class="stat"><div class="stat-label" data-i="stat_earn">Uždirba</div><div class="stat-val green" id="s-earn">0 €</div></div>
     <div class="stat"><div class="stat-label" data-i="stat_balance">Likutis</div><div class="stat-val purple" id="s-remain">0 €</div></div>
   </div>
@@ -449,12 +470,16 @@ textarea{resize:vertical;min-height:52px;}
     <div class="card-title" data-i="set_general">Bendra</div>
     <div class="setting-row"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="s-desc" data-i="rate_unit">€/val</div></div><input type="number" id="set-rate" placeholder="€/val" min="0" step="0.5" onchange="saveSettings();hideRateHint()" onkeydown="if(event.key==='Enter')hideRateHint()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_lunch">Pietų pertrauka</div><div class="s-desc" data-i="set_lunch_desc">Minutės</div></div><input type="number" id="set-lunch" value="30" min="0" onchange="saveSettings()"></div>
+    <div class="setting-row"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div><div class="s-desc" data-i="set_vacation_desc">Darbo dienos nuo šiandien</div></div><input type="number" id="set-vacation" min="-99" step="0.5" onchange="saveVacationSetting()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_start">Pradžios laikas</div></div><div id="set-start-holder"></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_end">Pabaigos laikas</div></div><div id="set-end-holder"></div></div>
   </div>
   <div class="card">
     <div class="card-title" data-i="set_theme">Tema</div>
-    <div class="theme-grid" id="theme-grid"></div>
+    <div class="mode-toggle" role="group" aria-label="Theme mode">
+      <button class="mode-btn" id="mode-night" onclick="selectMode('dark')" data-i="mode_night">🌙 Dark</button>
+      <button class="mode-btn" id="mode-day" onclick="selectMode('light')" data-i="mode_day">☀️ Light</button>
+    </div>
   </div>
   <div class="card">
     <div class="card-title" data-i="set_lang">Kalba / Language / Язык</div>
@@ -547,6 +572,7 @@ textarea{resize:vertical;min-height:52px;}
 <div id="toast"></div>
 
 <script>
+// #region Initialization
 // Detect run mode FIRST: file:// = local-first, https:// = cloud-required
 const IS_LOCAL_MODE = ['file:','content:','blob:'].includes(location.protocol);
 
@@ -571,6 +597,9 @@ function formatTimeDisplay(hhmm){
   return `${h12}:${String(m).padStart(2,'0')} ${period}`;
 }
 
+// #endregion Initialization
+
+// #region Localization (LT/EN/RU)
 // ===== I18N =====
 const LANGS={
   lt:{
@@ -578,7 +607,7 @@ const LANGS={
     add_title:'Naujas įrašas',add_date:'Data',add_total:'Viso valandų (be pietų):',add_obj_btn:'＋ Pridėti objektą',
     add_drive:'🚗 Vairavau aš',add_comment_ph:'Komentaras...',add_save:'Išsaugoti įrašą',
     add_obj_label:'Objektas',add_from:'Nuo',add_to:'Iki',add_hours:'val.',add_obj_ph:'Objekto pavadinimas',
-    stat_days:'Dirbta dienų',stat_hours:'Viso valandų',stat_earn:'Uždirbta',stat_balance:'Likutis',
+    stat_days:'Dirbta dienų',stat_hours:'Viso valandų',stat_vacation:'Atostogų likutis',stat_earn:'Uždirbta',stat_balance:'Likutis',
     filter_from:'Data nuo',filter_to:'Data iki',filter_obj:'Objektas...',filter_clear:'✕ Valyti',
     edit_btn:'✏️ Redaguoti',del_btn:'🗑 Ištrinti',edit_title:'Redaguoti įrašą',
     fin_earned:'Uždirbta',fin_paid:'Išmokėta',fin_balance:'Likutis',fin_expenses:'Išlaidos',fin_bonus:'Bonusai',
@@ -586,10 +615,10 @@ const LANGS={
     manage_tags_btn:'Redaguoti sąrašą',manage_tags_title:'Komentarų sąrašas',new_tag_ph:'Naujas komentaras...',btn_close:'Uždaryti',confirm_del_tag:'Ištrinti šį komentarą iš sąrašo?',
     tag_default_salary:'Alga',tag_default_perdiem:'Komandiruotpinigiai',tag_default_mail:'Paštas',
     btn_add:'＋ Pridėti',btn_save:'Išsaugoti',btn_cancel:'Atšaukti',btn_delete_yes:'Taip, ištrinti',
-    set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',rate_unit:'€/val',
+    set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',set_vacation_balance:'Atostogų likutis',set_vacation_desc:'Darbo dienos nuo šiandien',rate_unit:'€/val',
     rate_hint_text:'👋 Sveiki! Pirmiausia įveskite savo valandinį atlygį.',
-    set_start:'Pradžios laikas',set_end:'Pabaigos laikas',set_theme:'Tema',set_lang:'Kalba',
-    set_data:'Duomenys',set_import:'Importuoti',set_sync:'Saugojimas',sync_active:'prisijungta debesyje',
+    set_start:'Pradžios laikas',set_end:'Pabaigos laikas',set_theme:'Tema',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Kalba',
+    set_data:'Duomenys',set_import:'Importuoti',set_sync:'Saugojimas',sync_active:'Prisijungta debesyje',
     set_bug:'Pagalba',bug_report_btn:'🐞 Pranešti apie klaidą',bug_modal_title:'Pranešti apie klaidą',bug_desc_label:'Aprašykite klaidą',bug_desc_ph:'Kas neveikia ar kas atsitiko?',bug_send_btn:'📧 Siųsti',bug_empty_err:'Įveskite aprašymą',bug_sent_msg:'✓ Atidaromas pašto klientas',
     pay_date:'Data',pay_amount:'Suma €',pay_comment:'Komentaras',
     exp_date:'Data',exp_amount:'Suma €',exp_desc:'Aprašymas',exp_desc_ph:'Už ką?',
@@ -602,7 +631,7 @@ const LANGS={
     saved_settings:'✓ Nustatymai išsaugoti',saved_imported:'✓ Importuota',err_import:'⚠️ Klaida importuojant',
     remove_obj:'✕ Pašalinti',week_val:'val.',locale:'lt-LT',
     view_list:'📋 Sąrašas',view_calendar:'📅 Kalendorius',cal_filled:'Užpildyta',cal_today:'Šiandien',cal_holiday:'Šventinė diena',
-    local_mode_label:'💾 Duomenys saugomi šiame įrenginyje',enable_cloud_btn:'☁️ Įjungti debesį',logout_btn:'Atsijungti',
+    local_mode_label:'💾 Duomenys saugomi šiame įrenginyje',local_mode_title:'Vietinis saugojimas',enable_cloud_btn:'☁️ Įjungti debesį',logout_btn:'Atsijungti',
     cloud_confirm_title:'Įjungti debesies saugojimą?',cloud_confirm_desc:'Prisijungę su Google, jūsų duomenys bus saugomi debesyje ir pasiekiami iš kitų įrenginių.',
   },
   en:{
@@ -610,7 +639,7 @@ const LANGS={
     add_title:'New entry',add_date:'Date',add_total:'Total hours (excl. lunch):',add_obj_btn:'＋ Add object',
     add_drive:'🚗 I was driving',add_comment_ph:'Comment...',add_save:'Save entry',
     add_obj_label:'Object',add_from:'From',add_to:'To',add_hours:'hrs.',add_obj_ph:'Object name',
-    stat_days:'Days worked',stat_hours:'Total hours',stat_earn:'Earned',stat_balance:'Balance',
+    stat_days:'Days worked',stat_hours:'Total hours',stat_vacation:'Vacation balance',stat_earn:'Earned',stat_balance:'Balance',
     filter_from:'Date from',filter_to:'Date to',filter_obj:'Object...',filter_clear:'✕ Clear',
     edit_btn:'✏️ Edit',del_btn:'🗑 Delete',edit_title:'Edit entry',
     fin_earned:'Earned',fin_paid:'Paid out',fin_balance:'Balance',fin_expenses:'Expenses',fin_bonus:'Bonuses',
@@ -618,9 +647,9 @@ const LANGS={
     manage_tags_btn:'Edit list',manage_tags_title:'Comment list',new_tag_ph:'New comment...',btn_close:'Close',confirm_del_tag:'Delete this comment from the list?',
     tag_default_salary:'Salary',tag_default_perdiem:'Per diem',tag_default_mail:'Mail',
     btn_add:'＋ Add',btn_save:'Save',btn_cancel:'Cancel',btn_delete_yes:'Yes, delete',
-    set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',rate_unit:'€/hr',
+    set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',set_vacation_balance:'Vacation balance',set_vacation_desc:'Work days from today',rate_unit:'€/hr',
     rate_hint_text:'👋 Welcome! First, enter your hourly rate.',
-    set_start:'Start time',set_end:'End time',set_theme:'Theme',set_lang:'Language',
+    set_start:'Start time',set_end:'End time',set_theme:'Theme',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Language',
     set_data:'Data',set_import:'Import',set_sync:'Storage',sync_active:'synced to cloud',
     set_bug:'Support',bug_report_btn:'🐞 Report a bug',bug_modal_title:'Report a bug',bug_desc_label:'Describe the issue',bug_desc_ph:'What happened or isn\'t working?',bug_send_btn:'📧 Send',bug_empty_err:'Please enter a description',bug_sent_msg:'✓ Opening mail client',
     pay_date:'Date',pay_amount:'Amount €',pay_comment:'Comment',
@@ -634,7 +663,7 @@ const LANGS={
     saved_settings:'✓ Settings saved',saved_imported:'✓ Imported',err_import:'⚠️ Import error',
     remove_obj:'✕ Remove',week_val:'hrs.',locale:'en-GB',
     view_list:'📋 List',view_calendar:'📅 Calendar',cal_filled:'Filled',cal_today:'Today',cal_holiday:'Public holiday',
-    local_mode_label:'💾 Data stored on this device',enable_cloud_btn:'☁️ Enable cloud',logout_btn:'Sign out',
+    local_mode_label:'💾 Data stored on this device',local_mode_title:'Local storage',enable_cloud_btn:'☁️ Enable cloud',logout_btn:'Sign out',
     cloud_confirm_title:'Enable cloud sync?',cloud_confirm_desc:'After signing in with Google, your data will be stored in the cloud and accessible from other devices.',
   },
   ru:{
@@ -642,7 +671,7 @@ const LANGS={
     add_title:'Новая запись',add_date:'Дата',add_total:'Всего часов (без обеда):',add_obj_btn:'＋ Добавить объект',
     add_drive:'🚗 Я за рулём',add_comment_ph:'Комментарий...',add_save:'Сохранить запись',
     add_obj_label:'Объект',add_from:'С',add_to:'До',add_hours:'ч.',add_obj_ph:'Название объекта',
-    stat_days:'Дней работы',stat_hours:'Всего часов',stat_earn:'Заработано',stat_balance:'Остаток',
+    stat_days:'Дней работы',stat_hours:'Всего часов',stat_vacation:'Остаток отпуска',stat_earn:'Заработано',stat_balance:'Остаток',
     filter_from:'Дата от',filter_to:'Дата до',filter_obj:'Объект...',filter_clear:'✕ Очистить',
     edit_btn:'✏️ Изменить',del_btn:'🗑 Удалить',edit_title:'Редактировать запись',
     fin_earned:'Заработано',fin_paid:'Выплачено',fin_balance:'Остаток',fin_expenses:'Расходы',fin_bonus:'Бонусы',
@@ -650,9 +679,9 @@ const LANGS={
     manage_tags_btn:'Изменить список',manage_tags_title:'Список комментариев',new_tag_ph:'Новый комментарий...',btn_close:'Закрыть',confirm_del_tag:'Удалить этот комментарий из списка?',
     tag_default_salary:'Зарплата',tag_default_perdiem:'Суточные',tag_default_mail:'Почта',
     btn_add:'＋ Добавить',btn_save:'Сохранить',btn_cancel:'Отмена',btn_delete_yes:'Да, удалить',
-    set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',rate_unit:'€/ч',
+    set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',set_vacation_balance:'Остаток отпуска',set_vacation_desc:'Рабочие дни с сегодняшнего дня',rate_unit:'€/ч',
     rate_hint_text:'👋 Добро пожаловать! Сначала введите свою почасовую ставку.',
-    set_start:'Начало работы',set_end:'Конец работы',set_theme:'Тема',set_lang:'Язык',
+    set_start:'Начало работы',set_end:'Конец работы',set_theme:'Тема',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Язык',
     set_data:'Данные',set_import:'Импорт',set_sync:'Хранение',sync_active:'синхронизировано с облаком',
     set_bug:'Поддержка',bug_report_btn:'🐞 Сообщить об ошибке',bug_modal_title:'Сообщить об ошибке',bug_desc_label:'Опишите проблему',bug_desc_ph:'Что не работает или произошло?',bug_send_btn:'📧 Отправить',bug_empty_err:'Введите описание',bug_sent_msg:'✓ Открывается почтовый клиент',
     pay_date:'Дата',pay_amount:'Сумма €',pay_comment:'Комментарий',
@@ -666,25 +695,24 @@ const LANGS={
     saved_settings:'✓ Настройки сохранены',saved_imported:'✓ Импортировано',err_import:'⚠️ Ошибка импорта',
     remove_obj:'✕ Убрать',week_val:'ч.',locale:'ru-RU',
     view_list:'📋 Список',view_calendar:'📅 Календарь',cal_filled:'Заполнено',cal_today:'Сегодня',cal_holiday:'Праздничный день',
-    local_mode_label:'💾 Данные хранятся на этом устройстве',enable_cloud_btn:'☁️ Включить облако',logout_btn:'Выйти',
+    local_mode_label:'💾 Данные хранятся на этом устройстве',local_mode_title:'Локальное хранение',enable_cloud_btn:'☁️ Включить облако',logout_btn:'Выйти',
     cloud_confirm_title:'Включить облачное хранение?',cloud_confirm_desc:'После входа через Google ваши данные будут храниться в облаке и доступны с других устройств.',
   }
 };
 
-const THEMES={
-  dark:{name:'🌑 Dark',bg:'#0f1117',surface:'#1a1d27',surface2:'#22263a',accent:'#4f8ef7',success:'#22c55e',warning:'#f59e0b',danger:'#ef4444',text:'#e8eaf0',text2:'#a0a8c0',border:'#2a2e45'},
-  midnight:{name:'🌫️ Silver',bg:'#e8eaed',surface:'#f5f6f8',surface2:'#eceef1',accent:'#2d4e7a',success:'#1e6640',warning:'#7a4e10',danger:'#992020',text:'#1a1d24',text2:'#50587a',border:'#c8ccd8'},
-  forest:{name:'🌲 Forest',bg:'#0b1510',surface:'#102018',surface2:'#183025',accent:'#5ebc7a',success:'#86d4a0',warning:'#e8c56a',danger:'#e07070',text:'#d8f0e0',text2:'#90b898',border:'#1f4030'},
-  ocean:{name:'🌊 Ocean',bg:'#03080f',surface:'#071525',surface2:'#0c2040',accent:'#38bdf8',success:'#34d399',warning:'#fbbf24',danger:'#f87171',text:'#e0f2fe',text2:'#7ea4bf',border:'#0f3055'},
-  ivory:{name:'🩶 Slate',bg:'#c8cdd6',surface:'#d8dde6',surface2:'#cdd2db',accent:'#253d60',success:'#1a5530',warning:'#6a4208',danger:'#881818',text:'#0f1318',text2:'#404860',border:'#b0b8c8'},
-  lavender:{name:'💜 Lavender',bg:'#f5f3ff',surface:'#ffffff',surface2:'#ede9fe',accent:'#7c3aed',success:'#059669',warning:'#d97706',danger:'#dc2626',text:'#1e1b4b',text2:'#6d60a0',border:'#ddd6fe'},
-  rose:{name:'🌹 Rose',bg:'#fff5f7',surface:'#ffffff',surface2:'#fff0f3',accent:'#e11d48',success:'#059669',warning:'#d97706',danger:'#be123c',text:'#1f0a10',text2:'#9f5060',border:'#fecdd3'},
-  sand:{name:'🏜️ Sand',bg:'#faf8f3',surface:'#ffffff',surface2:'#f5f0e8',accent:'#b07840',success:'#5a8a5a',warning:'#b08020',danger:'#b05040',text:'#2a2015',text2:'#7a6848',border:'#e0d5c0'},
-  mint:{name:'🌿 Mint',bg:'#f0faf5',surface:'#ffffff',surface2:'#e8f8f0',accent:'#0e9060',success:'#0e7a50',warning:'#b07820',danger:'#c04040',text:'#0a2018',text2:'#507860',border:'#b8e8d0'},
+// #endregion Localization (LT/EN/RU)
+
+// #region Theme
+const THEME_MODES={
+  dark:{bg:'#080b12',surface:'#121722',surface2:'#1b2333',surface3:'#0d111a',accent:'#4f8ef7',success:'#22c55e',warning:'#f59e0b',danger:'#ef4444',text:'#f4f7fb',text2:'#9aa8bd',border:'#273246'},
+  light:{bg:'#eef2f7',surface:'#ffffff',surface2:'#f4f7fb',surface3:'#f8fafc',accent:'#2563eb',success:'#16a34a',warning:'#d97706',danger:'#dc2626',text:'#111827',text2:'#607086',border:'#d8e0ea'}
 };
 
 
-let data={entries:[],payments:{},expenses:{},settings:{rate:0,lunch:30,start:'07:00',end:'17:00',theme:'dark',lang:'lt'}};
+// #endregion Theme
+
+// #region State
+let data={entries:[],payments:{},expenses:{},settings:{rate:0,lunch:30,start:'07:00',end:'17:00',theme:'dark',mode:'dark',vacationBase:null,vacationBaseDate:null,lang:'lt'}};
 let currentUser=null;
 let saveTimer=null;
 let isLoadingFromCloud=false;
@@ -696,6 +724,9 @@ let confirmCb=null,swipeX={},objBlocks=[];
 
 function t(k){return(LANGS[data.settings.lang]||LANGS.lt)[k]||k;}
 
+// #endregion State
+
+// #region Storage
 function save(){
   if(isLoadingFromCloud)return;
 
@@ -720,6 +751,9 @@ function save(){
   }
 }
 
+// #endregion Storage
+
+// #region Authentication
 // ===== AUTH =====
 // ===== LOGIN SCREEN I18N (before auth) =====
 const LOGIN_TXT={
@@ -841,8 +875,7 @@ window.onFbAuthChange=async function(user){
     document.getElementById('sync-cloud-block').style.display='block';
     document.getElementById('ub-name').textContent=user.displayName||user.email||'';
     document.getElementById('ub-photo').src=user.photoURL||'';
-    const scd=document.getElementById('sync-cloud-desc');
-    if(scd)scd.textContent=(user.displayName||user.email||'')+' · '+t('sync_active');
+    updateCloudDescription();
 
     try{
       const cached=localStorage.getItem('dv-cache-'+user.uid);
@@ -878,6 +911,9 @@ window.onFbAuthChange=async function(user){
   }
 };
 
+// #endregion Authentication
+
+// #region Initialization
 function mergeDefaults(d){
   const isNew=!d||!d.settings||!d.settings.rate;
   if(!d)d={};
@@ -891,14 +927,16 @@ function mergeDefaults(d){
   d.settings.start=d.settings.start||'07:00';
   d.settings.end=d.settings.end||'17:00';
   d.settings.theme=d.settings.theme||'dark';
+  d.settings.mode=(d.settings.mode==='light'||d.settings.theme==='lavender'||d.settings.theme==='rose'||d.settings.theme==='sand'||d.settings.theme==='mint'||d.settings.theme==='ivory'||d.settings.theme==='midnight')?'light':(d.settings.mode||'dark');
+  if(!('vacationBase' in d.settings))d.settings.vacationBase=null;
+  if(!('vacationBaseDate' in d.settings))d.settings.vacationBaseDate=null;
   d.settings.lang=d.settings.lang||localStorage.getItem('dv-login-lang')||'lt';
   d._isNewUser=isNew;
   return d;
 }
 
 function initAppUI(){
-  applyTheme(data.settings.theme||'dark');
-  buildThemeGrid();
+  applyTheme();
   const lang=data.settings.lang||'lt';
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.id==='lang-'+lang));
   document.getElementById('inp-date').value=new Date().toISOString().split('T')[0];
@@ -923,35 +961,45 @@ function initAppUI(){
   }
 }
 
-function applyTheme(name){
-  const th=THEMES[name]||THEMES.dark;
+// #endregion Initialization
+
+// #region Theme
+function applyTheme(){
+  const mode=data.settings.mode==='light'?'light':'dark';
+  const palette=THEME_MODES[mode]||THEME_MODES.dark;
   const r=document.documentElement.style;
-  Object.entries(th).forEach(([k,v])=>{if(k!=='name')r.setProperty('--'+k,v);});
-  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.theme===name));
+  Object.entries(palette).forEach(([k,v])=>r.setProperty('--'+k,v));
+  document.documentElement.dataset.mode=mode;
+  const themeMeta=document.querySelector('meta[name="theme-color"]');
+  if(themeMeta)themeMeta.setAttribute('content',palette.bg);
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.id==='mode-'+(mode==='dark'?'night':'day')));
 }
+function buildThemeGrid(){/* kept as no-op for backwards-compatible inline calls */}
+function selectTheme(name){selectMode(name==='light'?'light':'dark');}
+function selectMode(mode){data.settings.mode=mode==='light'?'light':'dark';data.settings.theme=data.settings.mode;save();applyTheme();}
 
-function buildThemeGrid(){
-  const g=document.getElementById('theme-grid');
-  g.innerHTML=Object.entries(THEMES).map(([k,v])=>`
-    <div class="theme-btn${data.settings.theme===k?' active':''}" data-theme="${k}" onclick="selectTheme('${k}')">
-      <div class="theme-swatch" style="background:linear-gradient(135deg,${v.bg} 40%,${v.accent} 100%)"></div>
-      ${v.name}
-    </div>`).join('');
-}
+// #endregion Theme
 
-function selectTheme(name){data.settings.theme=name;save();applyTheme(name);buildThemeGrid();}
-
+// #region Localization (LT/EN/RU)
 function setLang(l){
   data.settings.lang=l;save();
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.id==='lang-'+l));
-  applyI18n();renderEntries();renderFinances();renderCalendar();updateMonthLabel();updateMonthLabelF();
+  applyI18n();updateCloudDescription();renderEntries();renderFinances();renderCalendar();updateMonthLabel();updateMonthLabelF();
 }
 
 function applyI18n(){
   document.querySelectorAll('[data-i]').forEach(el=>{const v=t(el.dataset.i);if(v)el.textContent=v;});
   document.querySelectorAll('[data-i-ph]').forEach(el=>{const v=t(el.dataset.iPh);if(v)el.placeholder=v;});
+  document.querySelectorAll('[data-i-title]').forEach(el=>{const v=t(el.dataset.iTitle);if(v)el.title=v;});
+}
+function updateCloudDescription(){
+  const scd=document.getElementById('sync-cloud-desc');
+  if(scd&&currentUser)scd.textContent=(currentUser.displayName||currentUser.email||'')+' · '+t('sync_active');
 }
 
+// #endregion Localization (LT/EN/RU)
+
+// #region UI
 let toastHideTimer=null,toastResetTimer=null;
 function toast(msg,err){
   const el=document.getElementById('toast');
@@ -985,13 +1033,18 @@ function showPage(id,btn){
   btn.classList.add('active');
   if(id==='irasymai'){renderEntries();renderCalendar();}
   if(id==='finansai')renderFinances();
-  if(id==='nustatymai'){buildThemeGrid();applyI18n();}
+  if(id==='nustatymai'){applyI18n();applyTheme();}
 }
 
+// #endregion UI
+
+// #region Settings
 function loadSettings(){
   const s=data.settings;
   document.getElementById('set-rate').value=s.rate||'';
   document.getElementById('set-lunch').value=s.lunch??30;
+  const vacInput=document.getElementById('set-vacation');
+  if(vacInput)vacInput.value=getVacationBalance(new Date().getFullYear()).toFixed(1);
   document.getElementById('set-start-holder').innerHTML=time24Picker('set-start',s.start||'07:00','settings',0,'start');
   document.getElementById('set-end-holder').innerHTML=time24Picker('set-end',s.end||'17:00','settings',0,'end');
 }
@@ -1002,7 +1055,18 @@ function saveSettings(){
   data.settings.end=t24GetValue('set-end')||'17:00';
   save();toast(t('saved_settings'));renderEntries();renderFinances();
 }
+function saveVacationSetting(){
+  const inp=document.getElementById('set-vacation');
+  const val=parseFloat(inp?.value);
+  data.settings.vacationBase=Number.isFinite(val)?val:0;
+  data.settings.vacationBaseDate=new Date().toISOString().split('T')[0];
+  save();toast(t('saved_settings'));renderEntries();
+  if(inp)inp.value=getVacationBalance(new Date().getFullYear()).toFixed(1);
+}
 
+// #endregion Settings
+
+// #region Utilities
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 
 // Workaround: mobile browsers filter datalist suggestions by current input value,
@@ -1033,7 +1097,7 @@ function toMin(tv){if(!tv)return 0;const[h,m]=tv.split(':').map(Number);return h
 function addHr(tv,h){const[hh,mm]=tv.split(':').map(Number);const tot=hh*60+mm+Math.round(h*60);return`${String(Math.floor(tot/60)%24).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;}
 
 function getKnownObjs(){
-  const seen=new Set(),res=[];
+  const seen=new Set(['Atostogos']),res=['Atostogos'];
   for(let i=data.entries.length-1;i>=0;i--)
     for(const o of(data.entries[i].objs||[]))
       if(o.obj&&!seen.has(o.obj)){seen.add(o.obj);res.push(o.obj);}
@@ -1068,6 +1132,9 @@ function hasOverlap(date,newObjs,excludeId){
   return false;
 }
 
+// #endregion Utilities
+
+// #region Time Entries
 function initObjBlocks(){
   const s=data.settings;
   objBlocks=[{obj:'',from:s.start||'07:00',to:s.end||'17:00',mult:null}];
@@ -1194,6 +1261,35 @@ function changeMonth(d){curMonth+=d;if(curMonth>11){curMonth=0;curYear++;}if(cur
 function updateMonthLabel(){document.getElementById('month-label').textContent=new Date(curYear,curMonth).toLocaleDateString(t('locale'),{month:'long',year:'numeric'});}
 function clearFilters(){['f-obj','f-from','f-to'].forEach(id=>document.getElementById(id).value='');renderEntries();}
 
+function isVacationObj(name){return String(name||'').trim().toLowerCase()==='atostogos';}
+function getVacationBalance(year){
+  const now=new Date();
+  const today=dateToStr(now);
+  const baseDate=data.settings.vacationBaseDate||`${year}-01-01`;
+  const baseYear=parseInt(baseDate.slice(0,4),10)||year;
+  const calcStart=baseYear===year?baseDate:`${year}-01-01`;
+  const calcEnd=year===now.getFullYear()?today:`${year}-12-31`;
+  const start=new Date(calcStart),end=new Date(calcEnd);
+  const accruedFromDate=(from,to)=>{
+    if(to<from)return 0;
+    let total=0;
+    for(let y=from.getFullYear();y<=to.getFullYear();y++){
+      const yStart=new Date(y,0,1),yEnd=new Date(y,11,31);
+      const a=from>yStart?from:yStart,b=to<yEnd?to:yEnd;
+      if(b>=a){const daysInYear=(new Date(y+1,0,1)-yStart)/86400000;total+=20*((Math.floor((b-a)/86400000)+1)/daysInYear);}
+    }
+    return total;
+  };
+  const base=Number.isFinite(parseFloat(data.settings.vacationBase))?parseFloat(data.settings.vacationBase):0;
+  const accrued=data.settings.vacationBaseDate?accruedFromDate(new Date(new Date(calcStart).getTime()+86400000),end):accruedFromDate(start,end);
+  const usedDates=new Set();
+  data.entries.forEach(e=>{if(e.date>=calcStart&&e.date<=calcEnd&&(e.objs||[]).some(o=>isVacationObj(o.obj)))usedDates.add(e.date);});
+  return (data.settings.vacationBaseDate?base:0)+accrued-usedDates.size;
+}
+
+// #endregion Vacation
+
+// #region Statistics
 function renderEntries(){
   const fObj=(document.getElementById('f-obj')?.value||'').toLowerCase();
   const fFrom=document.getElementById('f-from')?.value||'';
@@ -1220,6 +1316,8 @@ function renderEntries(){
   const remain=earned+bon-paid-exp;
   document.getElementById('s-days').textContent=filtered.length;
   document.getElementById('s-hours').textContent=totalH.toFixed(1);
+  const vacEl=document.getElementById('s-vacation');
+  if(vacEl){const vb=getVacationBalance(curYear);vacEl.textContent=vb.toFixed(1)+' d.';vacEl.className='stat-val '+(vb<0?'red':'teal');}
   document.getElementById('s-earn').textContent=earned.toFixed(2)+' €';
   const re=document.getElementById('s-remain');
   re.textContent=remain.toFixed(2)+' €';re.className='stat-val '+(remain<0?'red':'purple');
@@ -1255,6 +1353,9 @@ function renderEntries(){
   }).join('');
 }
 
+// #endregion Statistics
+
+// #region Calendar
 // ===== CALENDAR VIEW =====
 function setEntriesView(v){
   localStorage.setItem('dv-entries-view',v);
@@ -1346,6 +1447,9 @@ function showCalDay(ds){
   },50);
 }
 
+// #endregion Calendar
+
+// #region UI Gestures
 function tsStart(e,id){swipeX[id]=e.touches[0].clientX;}
 function tsMove(e,id){if(e.touches[0].clientX-swipeX[id]<-20)e.preventDefault();}
 function tsEnd(e,id){
@@ -1374,6 +1478,9 @@ document.addEventListener('keydown',function(e){
   // textarea: allow Enter to create new line, do nothing
 });
 
+// #endregion UI Gestures
+
+// #region Time Entries
 function deleteEntry(id){confirm2(t('confirm_del_entry'),()=>{data.entries=data.entries.filter(e=>e.id!==id);save();renderEntries();toast(t('saved_deleted'));});}
 
 function openEdit(id){
@@ -1425,6 +1532,9 @@ function saveEdit(){
   save();closeEdit();renderEntries();toast(t('saved_edit'));
 }
 
+// #endregion Time Entries
+
+// #region Salary
 // FINANCES
 function changeMonthF(d){curMonthF+=d;if(curMonthF>11){curMonthF=0;curYearF++;}if(curMonthF<0){curMonthF=11;curYearF--;}updateMonthLabelF();renderFinances();}
 function updateMonthLabelF(){document.getElementById('month-label-f').textContent=new Date(curYearF,curMonthF).toLocaleDateString(t('locale'),{month:'long',year:'numeric'});}
@@ -1484,6 +1594,9 @@ function displayTagText(tg){
   return tg;
 }
 
+// #endregion Salary
+
+// #region UI
 // ===== TAG MANAGER =====
 function openTagManager(){
   renderTagManagerList();
@@ -1524,6 +1637,9 @@ function deleteTagConfirm(i){
   });
 }
 
+// #endregion UI
+
+// #region Salary
 function renderExpList(expenses){
   const el=document.getElementById('expenses-list');
   if(!expenses.length){el.innerHTML=`<div style="color:var(--text2);font-size:13px;padding:8px 0">${t('empty')}</div>`;return;}
@@ -1583,6 +1699,9 @@ function rmPayConfirm(i){confirm2(t('confirm_del_pay'),()=>{const k=getMonthKey(
 function rmExpConfirm(i){confirm2(t('confirm_del_exp'),()=>{const k=getMonthKey();data.expenses[k].splice(i,1);autoSaveFinances();});}
 function rmBonusConfirm(i){confirm2(t('confirm_del_bonus'),()=>{const k=getMonthKey();data.bonuses[k].splice(i,1);autoSaveFinances();});}
 
+// #endregion Salary
+
+// #region UI
 // ===== BUG REPORT =====
 function openBugReport(){
   document.getElementById('bug-desc-input').value='';
@@ -1602,9 +1721,12 @@ function sendBugReport(){
   toast(t('bug_sent_msg'));
 }
 
+// #endregion UI
+
+// #region Storage
 function exportData(){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.json';a.click();}
 function exportCSV(){const rows=[['Data','Objektas','Nuo','Iki','Valandos','Mult','Vairavau','Komentaras']];data.entries.forEach(e=>(e.objs||[]).forEach(o=>rows.push([e.date,o.obj,o.from||'',o.to||'',o.hours,o.mult||'',e.drive?'Taip':'',e.comment||''])));const b=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.csv';a.click();}
-function importData(input){const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{data=JSON.parse(e.target.result);save();applyTheme(data.settings.theme||'dark');loadSettings();renderEntries();renderFinances();applyI18n();toast(t('saved_imported'));}catch{toast(t('err_import'),true);}};r.readAsText(file);}
+function importData(input){const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{data=JSON.parse(e.target.result);save();applyTheme();loadSettings();renderEntries();renderFinances();applyI18n();toast(t('saved_imported'));}catch{toast(t('err_import'),true);}};r.readAsText(file);}
 </script>
 </div>
 </body>
