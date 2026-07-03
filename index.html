@@ -35,6 +35,7 @@
   onAuthStateChanged(auth, (user) => {
     window.onFbAuthChange && window.onFbAuthChange(user);
   });
+// #endregion Storage
 </script>
 <style>
 /* #region Theme */
@@ -116,7 +117,7 @@ textarea{resize:vertical;min-height:52px;}
 .filter-block{margin-bottom:14px;}
 .filter-dates{display:flex;gap:8px;margin-bottom:8px;position:relative;}
 .range-picker{display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin:-4px 0 10px;box-shadow:0 12px 28px rgba(0,0,0,.22);}
-.range-picker.show,.filter-block:focus-within .range-picker{display:block!important;}
+.range-picker.show{display:block;}
 .range-picker-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .range-picker-head button{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 10px;cursor:pointer;}
 .range-picker-head span{flex:1;text-align:center;font-weight:700;font-size:13px;}
@@ -127,9 +128,7 @@ textarea{resize:vertical;min-height:52px;}
 .range-day:hover,.range-day.range-edge{border-color:var(--accent);background:var(--accent);color:#fff;}
 .range-day.range-in{background:rgba(79,142,247,.18);border-color:rgba(79,142,247,.35);color:var(--text);}
 .range-day.range-empty{background:transparent;border-color:transparent;cursor:default;}
-.filter-dates input,.filter-dates .range-field{flex:1;font-size:13px;padding:7px 10px;}
-.range-field{width:100%;background:var(--surface3,var(--bg));border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:inherit;text-align:left;cursor:pointer;}
-.range-field.is-placeholder{color:var(--text2);}
+.filter-dates input{flex:1;font-size:13px;padding:7px 10px;}
 .filter-obj-row{display:flex;gap:8px;}
 .filter-obj-row input{flex:1;font-size:13px;padding:7px 10px;}
 .entry-wrap{position:relative;margin-bottom:8px;border-radius:8px;overflow:hidden;}
@@ -428,13 +427,13 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
       <div class="filter-dates">
         <input type="hidden" id="f-from">
         <input type="hidden" id="f-to">
-        <button type="button" id="f-range" class="range-field is-placeholder" aria-label="Dienų intervalas" aria-expanded="false">Dienų intervalas...</button>
+        <input type="text" id="f-range" readonly onclick="toggleRangePicker()" data-i-ph="filter_range" placeholder="Dienų intervalas...">
       </div>
-      <div class="range-picker" id="range-picker" aria-hidden="true">
+      <div class="range-picker" id="range-picker">
         <div class="range-picker-head">
-          <button type="button" data-range-step="-1" aria-label="Ankstesnis mėnuo">‹</button>
+          <button type="button" onclick="changeRangeMonth(-1)">‹</button>
           <span id="range-label"></span>
-          <button type="button" data-range-step="1" aria-label="Kitas mėnuo">›</button>
+          <button type="button" onclick="changeRangeMonth(1)">›</button>
         </div>
         <div class="range-grid" id="range-grid"></div>
       </div>
@@ -495,7 +494,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     <div class="card-title" data-i="set_general">Bendra</div>
     <div class="setting-row"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="s-desc" data-i="rate_unit">€/val</div></div><input type="number" id="set-rate" placeholder="€/val" min="0" step="0.5" onchange="saveSettings();hideRateHint()" onkeydown="if(event.key==='Enter')hideRateHint()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_lunch">Pietų pertrauka</div><div class="s-desc" data-i="set_lunch_desc">Minutės</div></div><input type="number" id="set-lunch" value="30" min="0" onchange="saveSettings()"></div>
-    <div class="setting-row"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div><div class="s-desc" data-i="set_vacation_desc">Darbo dienos nuo šiandien</div></div><input type="number" id="set-vacation" min="-99" step="0.01" onchange="saveVacationSetting()"></div>
+    <div class="setting-row"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div><div class="s-desc" data-i="set_vacation_desc">Darbo dienos nuo šiandien</div></div><input type="number" id="set-vacation" min="-99" step="0.5" onchange="saveVacationSetting()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_start">Pradžios laikas</div></div><div id="set-start-holder"></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_end">Pabaigos laikas</div></div><div id="set-end-holder"></div></div>
   </div>
@@ -633,7 +632,7 @@ const LANGS={
     add_drive:'🚗 Vairavau aš',add_comment_ph:'Komentaras...',add_save:'Išsaugoti įrašą',
     add_obj_label:'Objektas',add_from:'Nuo',add_to:'Iki',add_hours:'val.',add_obj_ph:'Objekto pavadinimas',
     stat_days:'Dirbta dienų',stat_hours:'Viso valandų',stat_vacation:'Atostogų likutis',stat_earn:'Uždirbta',stat_balance:'Likutis',
-    filter_from:'Data nuo',filter_to:'Data iki',filter_range:'Dienų intervalas...',filter_obj:'Objektas...',filter_clear:'✕ Valyti',
+    filter_from:'Data nuo',filter_to:'Data iki',filter_obj:'Objektas...',filter_clear:'✕ Valyti',
     edit_btn:'✏️ Redaguoti',del_btn:'🗑 Ištrinti',edit_title:'Redaguoti įrašą',
     fin_earned:'Uždirbta',fin_paid:'Išmokėta',fin_balance:'Likutis',fin_expenses:'Išlaidos',fin_bonus:'Bonusai',
     bonus_date:'Data',bonus_amount:'Suma €',bonus_desc:'Aprašymas',bonus_desc_ph:'Už ką?',confirm_del_bonus:'Ištrinti šį bonusą?',
@@ -665,7 +664,7 @@ const LANGS={
     add_drive:'🚗 I was driving',add_comment_ph:'Comment...',add_save:'Save entry',
     add_obj_label:'Object',add_from:'From',add_to:'To',add_hours:'hrs.',add_obj_ph:'Object name',
     stat_days:'Days worked',stat_hours:'Total hours',stat_vacation:'Vacation balance',stat_earn:'Earned',stat_balance:'Balance',
-    filter_from:'Date from',filter_to:'Date to',filter_range:'Date range...',filter_obj:'Object...',filter_clear:'✕ Clear',
+    filter_from:'Date from',filter_to:'Date to',filter_obj:'Object...',filter_clear:'✕ Clear',
     edit_btn:'✏️ Edit',del_btn:'🗑 Delete',edit_title:'Edit entry',
     fin_earned:'Earned',fin_paid:'Paid out',fin_balance:'Balance',fin_expenses:'Expenses',fin_bonus:'Bonuses',
     bonus_date:'Date',bonus_amount:'Amount €',bonus_desc:'Description',bonus_desc_ph:'For what?',confirm_del_bonus:'Delete this bonus?',
@@ -697,7 +696,7 @@ const LANGS={
     add_drive:'🚗 Я за рулём',add_comment_ph:'Комментарий...',add_save:'Сохранить запись',
     add_obj_label:'Объект',add_from:'С',add_to:'До',add_hours:'ч.',add_obj_ph:'Название объекта',
     stat_days:'Дней работы',stat_hours:'Всего часов',stat_vacation:'Остаток отпуска',stat_earn:'Заработано',stat_balance:'Остаток',
-    filter_from:'Дата от',filter_to:'Дата до',filter_range:'Диапазон дат...',filter_obj:'Объект...',filter_clear:'✕ Очистить',
+    filter_from:'Дата от',filter_to:'Дата до',filter_obj:'Объект...',filter_clear:'✕ Очистить',
     edit_btn:'✏️ Изменить',del_btn:'🗑 Удалить',edit_title:'Редактировать запись',
     fin_earned:'Заработано',fin_paid:'Выплачено',fin_balance:'Остаток',fin_expenses:'Расходы',fin_bonus:'Бонусы',
     bonus_date:'Дата',bonus_amount:'Сумма €',bonus_desc:'Описание',bonus_desc_ph:'За что?',confirm_del_bonus:'Удалить этот бонус?',
@@ -1008,16 +1007,14 @@ function selectMode(mode){data.settings.mode=mode==='light'?'light':'dark';data.
 function setLang(l){
   data.settings.lang=l;save();
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.id==='lang-'+l));
-  applyI18n();updateCloudDescription();updateRangeLabel();renderRangePicker();renderEntries();renderFinances();renderCalendar();updateMonthLabel();updateMonthLabelF();
+  applyI18n();updateCloudDescription();renderEntries();renderFinances();renderCalendar();updateMonthLabel();updateMonthLabelF();
 }
 
 function applyI18n(){
   document.querySelectorAll('[data-i]').forEach(el=>{const v=t(el.dataset.i);if(v)el.textContent=v;});
-  document.querySelectorAll('[data-i-ph]').forEach(el=>{const key=el.getAttribute('data-i-ph')||el.dataset.iPh;const v=t(key);if(v&&v!==key)el.placeholder=v;});
+  document.querySelectorAll('[data-i-ph]').forEach(el=>{const v=t(el.dataset.iPh);if(v)el.placeholder=v;});
   document.querySelectorAll('[data-i-title]').forEach(el=>{const v=t(el.dataset.iTitle);if(v)el.title=v;});
-  updateRangeLabel();
 }
-
 function updateCloudDescription(){
   const scd=document.getElementById('sync-cloud-desc');
   if(scd&&currentUser)scd.textContent=(currentUser.displayName||currentUser.email||'')+' · '+t('sync_active');
@@ -1073,7 +1070,7 @@ function loadSettings(){
   document.getElementById('set-rate').value=s.rate||'';
   document.getElementById('set-lunch').value=s.lunch??30;
   const vacInput=document.getElementById('set-vacation');
-  if(vacInput)vacInput.value=getVacationBalance(new Date().getFullYear()).toFixed(2);
+  if(vacInput)vacInput.value=getVacationBalance(new Date().getFullYear()).toFixed(1);
   document.getElementById('set-start-holder').innerHTML=time24Picker('set-start',s.start||'07:00','settings',0,'start');
   document.getElementById('set-end-holder').innerHTML=time24Picker('set-end',s.end||'17:00','settings',0,'end');
 }
@@ -1090,7 +1087,7 @@ function saveVacationSetting(){
   data.settings.vacationBase=Number.isFinite(val)?val:0;
   data.settings.vacationBaseDate=new Date().toISOString().split('T')[0];
   save();toast(t('saved_settings'));renderEntries();
-  if(inp)inp.value=getVacationBalance(new Date().getFullYear()).toFixed(2);
+  if(inp)inp.value=getVacationBalance(new Date().getFullYear()).toFixed(1);
 }
 
 // #endregion Settings
@@ -1289,83 +1286,6 @@ function addEntry(){
 function changeMonth(d){curMonth+=d;if(curMonth>11){curMonth=0;curYear++;}if(curMonth<0){curMonth=11;curYear--;}updateMonthLabel();renderEntries();renderCalendar();}
 function updateMonthLabel(){document.getElementById('month-label').textContent=new Date(curYear,curMonth).toLocaleDateString(t('locale'),{month:'long',year:'numeric'});}
 
-
-function bindRangePicker(){
-  const field=document.getElementById('f-range');
-  if(field&&field.value==='filter_range')field.value='';
-  if(document.documentElement.dataset.rangePickerBound==='1')return;
-  document.documentElement.dataset.rangePickerBound='1';
-  document.addEventListener('click',e=>{
-    const rangeField=e.target.closest('#f-range');
-    if(rangeField){e.preventDefault();e.stopPropagation();toggleRangePicker();return;}
-    const picker=e.target.closest('#range-picker');
-    if(picker){
-      const stepBtn=e.target.closest('[data-range-step]');
-      if(stepBtn){e.preventDefault();changeRangeMonth(parseInt(stepBtn.dataset.rangeStep,10)||0);return;}
-      const day=e.target.closest('[data-date]');
-      if(day){e.preventDefault();selectRangeDate(day.dataset.date);return;}
-      return;
-    }
-    closeRangePicker();
-  });
-  document.addEventListener('keydown',e=>{
-    if(e.target?.id==='f-range'&&(e.key==='Enter'||e.key===' ')){e.preventDefault();toggleRangePicker();}
-    if(e.key==='Escape')closeRangePicker();
-  });
-  renderRangePicker();
-  updateRangeLabel();
-}
-
-function updateRangeLabel(){
-  const el=document.getElementById('f-range'),from=document.getElementById('f-from')?.value||'',to=document.getElementById('f-to')?.value||'';
-  if(!el)return;
-  const label=from&&to?`${formatDate(from)} – ${formatDate(to)}`:(from?formatDate(from):'');
-  el.textContent=label||t('filter_range');
-  el.classList.toggle('is-placeholder',!label);
-}
-function setRangePickerOpen(open){
-  const rp=document.getElementById('range-picker'),field=document.getElementById('f-range');
-  if(!rp)return;
-  rp.classList.toggle('show',open);
-  rp.style.display=open?'block':'';
-  rp.setAttribute('aria-hidden',open?'false':'true');
-  if(field)field.setAttribute('aria-expanded',open?'true':'false');
-  if(open)renderRangePicker();
-}
-function openRangePicker(){setRangePickerOpen(true);}
-function toggleRangePicker(){
-  const rp=document.getElementById('range-picker');
-  setRangePickerOpen(!(rp&&rp.classList.contains('show')));
-}
-function closeRangePicker(){setRangePickerOpen(false);}
-function changeRangeMonth(d){rangeMonth+=d;if(rangeMonth>11){rangeMonth=0;rangeYear++;}if(rangeMonth<0){rangeMonth=11;rangeYear--;}renderRangePicker();}
-function selectRangeDate(ds){
-  const from=document.getElementById('f-from'),to=document.getElementById('f-to');
-  if(!from||!to)return;
-  if(!rangeDraftStart||from.value&&to.value){rangeDraftStart=ds;from.value=ds;to.value='';}
-  else{if(ds<rangeDraftStart){from.value=ds;to.value=rangeDraftStart;}else{from.value=rangeDraftStart;to.value=ds;}rangeDraftStart='';closeRangePicker();}
-  updateRangeLabel();renderRangePicker();renderEntries();
-}
-function renderRangePicker(){
-  const grid=document.getElementById('range-grid'),label=document.getElementById('range-label');
-  if(!grid||!label)return;
-  label.textContent=new Date(rangeYear,rangeMonth).toLocaleDateString(t('locale'),{month:'long',year:'numeric'});
-  const names=({lt:['Pr','An','Tr','Kt','Pn','Št','Sk'],en:['Mo','Tu','We','Th','Fr','Sa','Su'],ru:['Пн','Вт','Ср','Чт','Пт','Сб','Вс']})[data.settings.lang]||['Pr','An','Tr','Kt','Pn','Št','Sk'];
-  const firstDay=new Date(rangeYear,rangeMonth,1);let offset=firstDay.getDay()-1;if(offset<0)offset=6;
-  const daysInMonth=new Date(rangeYear,rangeMonth+1,0).getDate();
-  const from=document.getElementById('f-from')?.value||'',to=document.getElementById('f-to')?.value||'';
-  let html=names.map(n=>`<div class="range-weekday">${n}</div>`).join('');
-  for(let i=0;i<offset;i++)html+='<div class="range-day range-empty"></div>';
-  for(let d=1;d<=daysInMonth;d++){
-    const ds=`${rangeYear}-${String(rangeMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const edge=ds===from||ds===to||ds===rangeDraftStart;
-    const inside=from&&to&&ds>from&&ds<to;
-    html+=`<button type="button" class="range-day${edge?' range-edge':''}${inside?' range-in':''}" data-date="${ds}">${d}</button>`;
-  }
-  grid.innerHTML=html;
-}
-function clearFilters(){['f-obj','f-from','f-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});rangeDraftStart='';updateRangeLabel();closeRangePicker();renderEntries();}
-
 function isVacationObj(name){return String(name||'').trim().toLowerCase()==='atostogos';}
 function getVacationBalance(year){
   const now=new Date();
@@ -1422,7 +1342,7 @@ function renderEntries(){
   document.getElementById('s-days').textContent=filtered.length;
   document.getElementById('s-hours').textContent=totalH.toFixed(1);
   const vacEl=document.getElementById('s-vacation');
-  if(vacEl){const vb=getVacationBalance(curYear);vacEl.textContent=vb.toFixed(2)+' d.';vacEl.className='stat-val '+(vb<0?'red':'teal');}
+  if(vacEl){const vb=getVacationBalance(curYear);vacEl.textContent=vb.toFixed(1)+' d.';vacEl.className='stat-val '+(vb<0?'red':'teal');}
   document.getElementById('s-earn').textContent=earned.toFixed(2)+' €';
   const re=document.getElementById('s-remain');
   re.textContent=remain.toFixed(2)+' €';re.className='stat-val '+(remain<0?'red':'purple');
@@ -1832,8 +1752,6 @@ function sendBugReport(){
 function exportData(){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.json';a.click();}
 function exportCSV(){const rows=[['Data','Objektas','Nuo','Iki','Valandos','Mult','Vairavau','Komentaras']];data.entries.forEach(e=>(e.objs||[]).forEach(o=>rows.push([e.date,o.obj,o.from||'',o.to||'',o.hours,o.mult||'',e.drive?'Taip':'',e.comment||''])));const b=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.csv';a.click();}
 function importData(input){const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{data=JSON.parse(e.target.result);save();applyTheme();loadSettings();renderEntries();renderFinances();applyI18n();toast(t('saved_imported'));}catch{toast(t('err_import'),true);}};r.readAsText(file);}
-
-bindRangePicker();
 </script>
 </div>
 </body>
