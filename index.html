@@ -965,7 +965,7 @@ function initAppUI(){
   const lang=data.settings.lang||'lt';
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.id==='lang-'+lang));
   document.getElementById('inp-date').value=new Date().toISOString().split('T')[0];
-  loadSettings();initObjBlocks();renderEntries();renderFinances();updateMonthLabel();updateMonthLabelF();
+  loadSettings();initObjBlocks();bindRangePicker();renderEntries();renderFinances();updateMonthLabel();updateMonthLabelF();
   applyI18n();
   const savedView=localStorage.getItem('dv-entries-view')||'list';
   setEntriesView(savedView);
