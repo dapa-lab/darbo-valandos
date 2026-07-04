@@ -493,7 +493,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     <div class="card-title" data-i="set_general">Bendra</div>
     <div class="setting-row"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="s-desc" data-i="rate_unit">€/val</div></div><input type="number" id="set-rate" placeholder="€/val" min="0" step="0.5" onchange="saveSettings();hideRateHint()" onkeydown="if(event.key==='Enter')hideRateHint()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_lunch">Pietų pertrauka</div><div class="s-desc" data-i="set_lunch_desc">Minutės</div></div><input type="number" id="set-lunch" value="30" min="0" onchange="saveSettings()"></div>
-    <div class="setting-row"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div><div class="s-desc" data-i="set_vacation_desc">Darbo dienos nuo šiandien</div></div><input type="number" id="set-vacation" min="-99" step="0.5" onchange="saveVacationSetting()"></div>
+    <div class="setting-row"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div><div class="s-desc" data-i="set_vacation_desc">Darbo dienos nuo šiandien</div></div><input type="number" id="set-vacation" min="-99" step="0.01" onchange="saveVacationSetting()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_start">Pradžios laikas</div></div><div id="set-start-holder"></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_end">Pabaigos laikas</div></div><div id="set-end-holder"></div></div>
   </div>
@@ -1069,7 +1069,7 @@ function loadSettings(){
   document.getElementById('set-rate').value=s.rate||'';
   document.getElementById('set-lunch').value=s.lunch??30;
   const vacInput=document.getElementById('set-vacation');
-  if(vacInput)vacInput.value=getVacationBalance(new Date().getFullYear()).toFixed(1);
+  if(vacInput)vacInput.value=getVacationBalance(new Date().getFullYear()).toFixed(2);
   document.getElementById('set-start-holder').innerHTML=time24Picker('set-start',s.start||'07:00','settings',0,'start');
   document.getElementById('set-end-holder').innerHTML=time24Picker('set-end',s.end||'17:00','settings',0,'end');
 }
@@ -1086,7 +1086,7 @@ function saveVacationSetting(){
   data.settings.vacationBase=Number.isFinite(val)?val:0;
   data.settings.vacationBaseDate=new Date().toISOString().split('T')[0];
   save();toast(t('saved_settings'));renderEntries();
-  if(inp)inp.value=getVacationBalance(new Date().getFullYear()).toFixed(1);
+  if(inp)inp.value=getVacationBalance(new Date().getFullYear()).toFixed(2);
 }
 
 // #endregion Settings
@@ -1341,7 +1341,7 @@ function renderEntries(){
   document.getElementById('s-days').textContent=filtered.length;
   document.getElementById('s-hours').textContent=totalH.toFixed(1);
   const vacEl=document.getElementById('s-vacation');
-  if(vacEl){const vb=getVacationBalance(curYear);vacEl.textContent=vb.toFixed(1)+' d.';vacEl.className='stat-val '+(vb<0?'red':'teal');}
+  if(vacEl){const vb=getVacationBalance(curYear);vacEl.textContent=vb.toFixed(2)+' d.';vacEl.className='stat-val '+(vb<0?'red':'teal');}
   document.getElementById('s-earn').textContent=earned.toFixed(2)+' €';
   const re=document.getElementById('s-remain');
   re.textContent=remain.toFixed(2)+' €';re.className='stat-val '+(remain<0?'red':'purple');
@@ -1456,7 +1456,7 @@ function showCalDay(ds){
   if(!e){
     // empty day -> go to Add page with this date pre-filled
     document.getElementById('inp-date').value=ds;
-    document.querySelector('nav button:nth-child(1)')?.click();
+    document.querySelector('nav button:first-of-type')?.click();
     return;
   }
   // filled day -> switch to list view and scroll to that entry
