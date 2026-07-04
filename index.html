@@ -1307,7 +1307,7 @@ function getVacationBalance(year){
   if(hasManualBase&&data.settings.vacationBaseDate===today)return base;
   const baseDate=hasManualBase?data.settings.vacationBaseDate:`${year-1}-12-31`;
   const calcStart=addDays(baseDate,1);
-  const calcEnd=year===now.getFullYear()?today:`${year}-12-31`;
+  const calcEnd=year===now.getFullYear()?addDays(today,-1):`${year}-12-31`;
   const start=localDate(calcStart),end=localDate(calcEnd);
   const accruedFromDate=(from,to)=>{
     if(to<from)return 0;
