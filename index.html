@@ -425,9 +425,8 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
   <div id="list-view">
     <div class="filter-block">
       <div class="filter-dates">
-        <input type="hidden" id="f-from">
-        <input type="hidden" id="f-to">
-        <input type="text" id="f-range" readonly onclick="toggleRangePicker()" data-i-ph="filter_range" placeholder="Dienų intervalas...">
+        <input type="date" id="f-from" aria-label="dateFrom" onchange="renderEntries()">
+        <input type="date" id="f-to" aria-label="dateTo" onchange="renderEntries()">
       </div>
       <div class="range-picker" id="range-picker">
         <div class="range-picker-head">
@@ -965,7 +964,7 @@ function initAppUI(){
   const lang=data.settings.lang||'lt';
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.id==='lang-'+lang));
   document.getElementById('inp-date').value=new Date().toISOString().split('T')[0];
-  loadSettings();initObjBlocks();bindRangePicker();renderEntries();renderFinances();updateMonthLabel();updateMonthLabelF();
+  loadSettings();initObjBlocks();renderEntries();renderFinances();updateMonthLabel();updateMonthLabelF();
   applyI18n();
   const savedView=localStorage.getItem('dv-entries-view')||'list';
   setEntriesView(savedView);
@@ -1317,16 +1316,16 @@ function getVacationBalance(year){
 // #region Statistics
 function renderEntries(){
   const fObj=(document.getElementById('f-obj')?.value||'').toLowerCase();
-  const fFrom=document.getElementById('f-from')?.value||'';
-  const fTo=document.getElementById('f-to')?.value||'';
+  const dateFrom=document.getElementById('f-from')?.value||'';
+  const dateTo=document.getElementById('f-to')?.value||'';
   const dl=document.getElementById('f-obj-list');
   if(dl)dl.innerHTML=getKnownObjs().map(o=>`<option value="${escH(o)}">`).join('');
 
   const filtered=data.entries.filter(e=>{
     const[y,m]=e.date.split('-').map(Number);
     if(y!==curYear||m-1!==curMonth)return false;
-    if(fFrom&&e.date<fFrom)return false;
-    if(fTo&&e.date>fTo)return false;
+    if(dateFrom&&e.date<dateFrom)return false;
+    if(dateTo&&e.date>dateTo)return false;
     if(fObj&&!(e.objs||[]).some(o=>o.obj.toLowerCase().includes(fObj)))return false;
     return true;
   });
