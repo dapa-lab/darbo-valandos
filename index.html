@@ -1289,13 +1289,16 @@ function changeMonth(d){curMonth+=d;if(curMonth>11){curMonth=0;curYear++;}if(cur
 function updateMonthLabel(){document.getElementById('month-label').textContent=new Date(curYear,curMonth).toLocaleDateString(t('locale'),{month:'long',year:'numeric'});}
 
 function isVacationObj(name){return String(name||'').trim().toLowerCase()==='atostogos';}
+function localDate(dateStr){const[y,m,d]=dateStr.split('-').map(Number);return new Date(y,m-1,d);}
+function addDays(dateStr,days){const d=localDate(dateStr);d.setDate(d.getDate()+days);return dateToStr(d);}
 function getVacationBalance(year){
   const now=new Date();
   const today=dateToStr(now);
-  const baseDate=data.settings.vacationBaseDate||`${year}-01-01`;
-  const calcStart=data.settings.vacationBaseDate?baseDate:`${year}-01-01`;
+  const hasManualBase=Number.isFinite(parseFloat(data.settings.vacationBase))&&!!data.settings.vacationBaseDate;
+  const baseDate=hasManualBase?data.settings.vacationBaseDate:`${year}-01-01`;
+  const calcStart=hasManualBase?addDays(baseDate,1):baseDate;
   const calcEnd=year===now.getFullYear()?today:`${year}-12-31`;
-  const start=new Date(calcStart),end=new Date(calcEnd);
+  const start=localDate(calcStart),end=localDate(calcEnd);
   const accruedFromDate=(from,to)=>{
     if(to<from)return 0;
     let total=0;
@@ -1306,11 +1309,11 @@ function getVacationBalance(year){
     }
     return total;
   };
-  const base=Number.isFinite(parseFloat(data.settings.vacationBase))?parseFloat(data.settings.vacationBase):0;
-  const accrued=data.settings.vacationBaseDate?accruedFromDate(new Date(new Date(calcStart).getTime()+86400000),end):accruedFromDate(start,end);
+  const base=hasManualBase?parseFloat(data.settings.vacationBase):0;
+  const accrued=accruedFromDate(start,end);
   const usedDates=new Set();
   data.entries.forEach(e=>{if(e.date>=calcStart&&e.date<=calcEnd&&(e.objs||[]).some(o=>isVacationObj(o.obj)))usedDates.add(e.date);});
-  return (data.settings.vacationBaseDate?base:0)+accrued-usedDates.size;
+  return base+accrued-usedDates.size;
 }
 
 // #endregion Vacation
