@@ -493,7 +493,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     <div class="card-title" data-i="set_general">Bendra</div>
     <div class="setting-row"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="s-desc" data-i="rate_unit">€/val</div></div><input type="number" id="set-rate" placeholder="€/val" min="0" step="0.5" onchange="saveSettings();hideRateHint()" onkeydown="if(event.key==='Enter')hideRateHint()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_lunch">Pietų pertrauka</div><div class="s-desc" data-i="set_lunch_desc">Minutės</div></div><input type="number" id="set-lunch" value="30" min="0" onchange="saveSettings()"></div>
-    <div class="setting-row"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div><div class="s-desc" data-i="set_vacation_desc">Darbo dienos nuo šiandien</div></div><input type="number" id="set-vacation" min="-99" step="0.01" onchange="saveVacationSetting()"></div>
+    <div class="setting-row"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div><div class="s-desc" data-i="set_vacation_desc">Darbo dienos nuo šiandien</div></div><input type="text" id="set-vacation" inputmode="decimal" onchange="saveVacationSetting()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_start">Pradžios laikas</div></div><div id="set-start-holder"></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_end">Pabaigos laikas</div></div><div id="set-end-holder"></div></div>
   </div>
@@ -651,7 +651,7 @@ const LANGS={
     err_date:'Pasirinkite datą',err_obj_name:'Įveskite visų objektų pavadinimus',err_time_same:'Laiko pradžia ir pabaiga negali būti vienodos',
     err_no_time:'Pasirinkite darbo laiką',err_overlap:'Šios valandos jau buvo užpildytos',
     saved_entry:'✓ Įrašas pridėtas',saved_edit:'✓ Įrašas atnaujintas',saved_deleted:'✓ Ištrinta',
-    saved_settings:'✓ Nustatymai išsaugoti',saved_imported:'✓ Importuota',err_import:'⚠️ Klaida importuojant',
+    saved_settings:'✓ Nustatymai išsaugoti',err_vacation_balance:'Įveskite teisingą atostogų likutį',saved_imported:'✓ Importuota',err_import:'⚠️ Klaida importuojant',
     remove_obj:'✕ Pašalinti',week_val:'val.',locale:'lt-LT',
     view_list:'📋 Sąrašas',view_calendar:'📅 Kalendorius',cal_filled:'Užpildyta',cal_today:'Šiandien',cal_holiday:'Šventinė diena',
     local_mode_label:'💾 Duomenys saugomi šiame įrenginyje',local_mode_title:'Vietinis saugojimas',enable_cloud_btn:'☁️ Įjungti debesį',logout_btn:'Atsijungti',
@@ -683,7 +683,7 @@ const LANGS={
     err_date:'Select a date',err_obj_name:'Enter names for all objects',err_time_same:'Time start and end cannot be the same',
     err_no_time:'Select work time',err_overlap:'These hours are already filled',
     saved_entry:'✓ Entry added',saved_edit:'✓ Entry updated',saved_deleted:'✓ Deleted',
-    saved_settings:'✓ Settings saved',saved_imported:'✓ Imported',err_import:'⚠️ Import error',
+    saved_settings:'✓ Settings saved',err_vacation_balance:'Enter a valid vacation balance',saved_imported:'✓ Imported',err_import:'⚠️ Import error',
     remove_obj:'✕ Remove',week_val:'hrs.',locale:'en-GB',
     view_list:'📋 List',view_calendar:'📅 Calendar',cal_filled:'Filled',cal_today:'Today',cal_holiday:'Public holiday',
     local_mode_label:'💾 Data stored on this device',local_mode_title:'Local storage',enable_cloud_btn:'☁️ Enable cloud',logout_btn:'Sign out',
@@ -715,7 +715,7 @@ const LANGS={
     err_date:'Выберите дату',err_obj_name:'Введите названия всех объектов',err_time_same:'Начало и конец времени не могут совпадать',
     err_no_time:'Выберите рабочее время',err_overlap:'Эти часы уже заполнены',
     saved_entry:'✓ Запись добавлена',saved_edit:'✓ Запись обновлена',saved_deleted:'✓ Удалено',
-    saved_settings:'✓ Настройки сохранены',saved_imported:'✓ Импортировано',err_import:'⚠️ Ошибка импорта',
+    saved_settings:'✓ Настройки сохранены',err_vacation_balance:'Введите корректный остаток отпуска',saved_imported:'✓ Импортировано',err_import:'⚠️ Ошибка импорта',
     remove_obj:'✕ Убрать',week_val:'ч.',locale:'ru-RU',
     view_list:'📋 Список',view_calendar:'📅 Календарь',cal_filled:'Заполнено',cal_today:'Сегодня',cal_holiday:'Праздничный день',
     local_mode_label:'💾 Данные хранятся на этом устройстве',local_mode_title:'Локальное хранение',enable_cloud_btn:'☁️ Включить облако',logout_btn:'Выйти',
@@ -1085,8 +1085,14 @@ function saveSettings(){
 }
 function saveVacationSetting(){
   const inp=document.getElementById('set-vacation');
-  const val=parseFloat(inp?.value);
-  data.settings.vacationBase=Number.isFinite(val)?val:0;
+  const raw=(inp?.value||'').trim().replace(',','.');
+  const val=/^-?(?:\d+|\d*\.\d+)$/.test(raw)?Number(raw):NaN;
+  if(!Number.isFinite(val)||val<-99){
+    showErrField('set-vacation');
+    toast('⚠️ '+t('err_vacation_balance'),true);
+    return;
+  }
+  data.settings.vacationBase=val;
   data.settings.vacationBaseDate=new Date().toISOString().split('T')[0];
   save();toast(t('saved_settings'));renderEntries();renderCalendar();
   if(inp)inp.value=formatVacationSetting(data.settings.vacationBase);
