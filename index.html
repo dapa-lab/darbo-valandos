@@ -1088,7 +1088,7 @@ function saveVacationSetting(){
   const val=parseFloat(inp?.value);
   data.settings.vacationBase=Number.isFinite(val)?val:0;
   data.settings.vacationBaseDate=new Date().toISOString().split('T')[0];
-  save();toast(t('saved_settings'));renderEntries();
+  save();toast(t('saved_settings'));renderEntries();renderCalendar();
   if(inp)inp.value=data.settings.vacationBase.toFixed(2);
 }
 
