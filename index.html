@@ -1085,7 +1085,7 @@ function saveSettings(){
 }
 function saveVacationSetting(){
   const inp=document.getElementById('set-vacation');
-  const raw=(inp?.value||'').trim().replace(',','.');
+  const raw=String(inp?.value??'').trim().replace(/,/g,'.');
   const val=/^-?(?:\d+|\d*\.\d+)$/.test(raw)?Number(raw):NaN;
   if(!Number.isFinite(val)||val<-99){
     showErrField('set-vacation');
@@ -1303,6 +1303,8 @@ function getVacationBalance(year){
   const now=new Date();
   const today=dateToStr(now);
   const hasManualBase=Number.isFinite(parseFloat(data.settings.vacationBase))&&!!data.settings.vacationBaseDate;
+  const base=hasManualBase?parseFloat(data.settings.vacationBase):0;
+  if(hasManualBase&&data.settings.vacationBaseDate===today)return base;
   const baseDate=hasManualBase?data.settings.vacationBaseDate:`${year-1}-12-31`;
   const calcStart=addDays(baseDate,1);
   const calcEnd=year===now.getFullYear()?today:`${year}-12-31`;
@@ -1317,7 +1319,6 @@ function getVacationBalance(year){
     }
     return total;
   };
-  const base=hasManualBase?parseFloat(data.settings.vacationBase):0;
   const accrued=accruedFromDate(start,end);
   const usedDates=new Set();
   data.entries.forEach(e=>{if(e.date>=calcStart&&e.date<=calcEnd&&(e.objs||[]).some(o=>isVacationObj(o.obj)))usedDates.add(e.date);});
