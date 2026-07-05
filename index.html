@@ -133,9 +133,9 @@ textarea{resize:vertical;min-height:52px;}
 .range-day.range-in{background:rgba(79,142,247,.18);border-color:rgba(79,142,247,.35);color:var(--text);}
 .range-day.range-empty{background:transparent;border-color:transparent;cursor:default;}
 .range-day.range-empty:not(.range-leading-empty){display:none;}
-.range-picker-foot{display:grid;grid-template-columns:1fr 33% 1fr;gap:14px;align-items:center;margin-top:10px;}
-.range-picker-foot .btn-primary{grid-column:2;width:100%;}
-.range-picker-foot .btn-ghost{grid-column:3;justify-self:end;}
+.range-picker-foot{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;align-items:center;margin-top:4px;}
+.range-picker-foot .btn-primary{grid-column:3 / span 3;width:100%;}
+.range-picker-foot .btn-ghost{grid-column:7;justify-self:stretch;width:100%;}
 .filter-dates input{flex:1;font-size:13px;padding:7px 10px;}
 .filter-obj-row{display:flex;gap:8px;}
 .filter-obj-row input{flex:1;font-size:13px;padding:7px 10px;}
