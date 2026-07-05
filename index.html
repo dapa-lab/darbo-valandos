@@ -118,6 +118,7 @@ textarea{resize:vertical;min-height:52px;}
 .filter-dates{display:flex;gap:8px;margin-bottom:8px;position:relative;}
 .filter-dates .native-range-date{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;padding:0;border:0;}
 .range-field{width:100%;background:var(--surface3,var(--bg));border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:7px 10px;text-align:left;cursor:pointer;}
+.range-field.range-placeholder{color:var(--text2);}
 .range-field.open{border-color:var(--accent);}
 .range-picker{display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin:-4px 0 10px;box-shadow:0 12px 28px rgba(0,0,0,.22);}
 .range-picker.show{display:block;}
@@ -429,7 +430,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
   <div id="list-view">
     <div class="filter-block">
       <div class="filter-dates">
-        <button type="button" class="range-field" id="range-field" onclick="toggleRangePicker()" aria-expanded="false">Pasirinkti datas</button>
+        <button type="button" class="range-field range-placeholder" id="range-field" onclick="toggleRangePicker()" aria-expanded="false">Pasirinkti datas</button>
         <input type="date" id="f-from" class="native-range-date" aria-label="dateFrom" onchange="syncRangeFromInputs();renderEntries()">
         <input type="date" id="f-to" class="native-range-date" aria-label="dateTo" onchange="syncRangeFromInputs();renderEntries()">
       </div>
@@ -441,7 +442,8 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
         </div>
         <div class="range-grid" id="range-grid"></div>
         <div class="range-picker-foot">
-          <button type="button" class="btn btn-ghost btn-sm" onclick="clearDateRange()">✕</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="closeRangePicker()">✕</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="applyRangePicker()">OK</button>
         </div>
       </div>
       <div class="filter-obj-row">
@@ -749,7 +751,7 @@ let saveTimer=null;
 let isLoadingFromCloud=false;
 
 let curMonth=new Date().getMonth(),curYear=new Date().getFullYear();
-let rangeMonth=new Date().getMonth(),rangeYear=new Date().getFullYear(),rangeDraftStart='';
+let rangeMonth=new Date().getMonth(),rangeYear=new Date().getFullYear(),rangeDraftStart='',rangeDraftFrom='',rangeDraftTo='';
 let curMonthF=new Date().getMonth(),curYearF=new Date().getFullYear();
 let editId=null,editBlocks=[];
 let confirmCb=null,swipeX={},objBlocks=[];
@@ -1139,6 +1141,7 @@ function updateRangeLabel(){
   const from=document.getElementById('f-from')?.value||'',to=document.getElementById('f-to')?.value||'',field=document.getElementById('range-field');
   if(!field)return;
   field.textContent=from&&to?(from===to?formatDate(from):`${formatDate(from)} – ${formatDate(to)}`):t('range_select');
+  field.classList.toggle('range-placeholder',!(from&&to));
 }
 function syncRangeFromInputs(){
   const from=document.getElementById('f-from')?.value||'';
@@ -1150,31 +1153,36 @@ function toggleRangePicker(){
   if(!picker)return;
   const show=!picker.classList.contains('show');
   picker.classList.toggle('show',show);field?.classList.toggle('open',show);field?.setAttribute('aria-expanded',show?'true':'false');
-  if(show)syncRangeFromInputs();
+  if(show){rangeDraftFrom=document.getElementById('f-from')?.value||'';rangeDraftTo=document.getElementById('f-to')?.value||'';syncRangeFromInputs();}
 }
 function closeRangePicker(){
   document.getElementById('range-picker')?.classList.remove('show');
   document.getElementById('range-field')?.classList.remove('open');
   document.getElementById('range-field')?.setAttribute('aria-expanded','false');
+  rangeDraftStart='';rangeDraftFrom='';rangeDraftTo='';renderRangePicker();
+}
+function applyRangePicker(){
+  const from=document.getElementById('f-from'),to=document.getElementById('f-to');
+  if(!from||!to)return;
+  from.value=rangeDraftFrom;to.value=rangeDraftTo;rangeDraftStart='';
+  updateRangeLabel();renderRangePicker();renderEntries();closeRangePicker();
 }
 function changeRangeMonth(d){
   rangeMonth+=d;if(rangeMonth>11){rangeMonth=0;rangeYear++;}if(rangeMonth<0){rangeMonth=11;rangeYear--;}
   renderRangePicker();
 }
 function selectRangeDate(ds){
-  const from=document.getElementById('f-from'),to=document.getElementById('f-to');
-  if(!from||!to)return;
-  if(!rangeDraftStart){rangeDraftStart=ds;from.value=ds;to.value=ds;updateRangeLabel();renderRangePicker();renderEntries();return;}
+  if(!rangeDraftStart){rangeDraftStart=ds;rangeDraftFrom=ds;rangeDraftTo=ds;renderRangePicker();return;}
   const start=rangeDraftStart<=ds?rangeDraftStart:ds,end=rangeDraftStart<=ds?ds:rangeDraftStart;
-  from.value=start;to.value=end;rangeDraftStart='';
-  updateRangeLabel();renderRangePicker();renderEntries();closeRangePicker();
+  rangeDraftFrom=start;rangeDraftTo=end;rangeDraftStart='';
+  renderRangePicker();
 }
 function renderRangePicker(){
   const grid=document.getElementById('range-grid'),label=document.getElementById('range-label');
   if(!grid||!label)return;
   label.textContent=new Date(rangeYear,rangeMonth,1).toLocaleDateString(data.settings.lang||'lt',{month:'long',year:'numeric'});
   const names={lt:['Pr','An','Tr','Kt','Pn','Št','Sk'],en:['Mo','Tu','We','Th','Fr','Sa','Su'],ru:['Пн','Вт','Ср','Чт','Пт','Сб','Вс']}[data.settings.lang]||['Pr','An','Tr','Kt','Pn','Št','Sk'];
-  const from=document.getElementById('f-from')?.value||'',to=document.getElementById('f-to')?.value||'';
+  const from=rangeDraftFrom||document.getElementById('f-from')?.value||'',to=rangeDraftTo||document.getElementById('f-to')?.value||'';
   const firstDay=new Date(rangeYear,rangeMonth,1);
   let startOffset=firstDay.getDay()-1;if(startOffset<0)startOffset=6;
   const daysInMonth=new Date(rangeYear,rangeMonth+1,0).getDate();
@@ -1190,7 +1198,7 @@ function renderRangePicker(){
 }
 function clearDateRange(){
   const from=document.getElementById('f-from'),to=document.getElementById('f-to');
-  if(from)from.value='';if(to)to.value='';rangeDraftStart='';
+  if(from)from.value='';if(to)to.value='';rangeDraftStart='';rangeDraftFrom='';rangeDraftTo='';
   updateRangeLabel();renderRangePicker();renderEntries();closeRangePicker();
 }
 function clearFilters(){
