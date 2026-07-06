@@ -1384,8 +1384,8 @@ function updateMonthLabel(){document.getElementById('month-label').textContent=n
 const VACATION_OBJECT_LABELS={lt:'Atostogos',en:'Vacation',ru:'Отпуск'};
 const VACATION_OBJECT_NAMES=Object.values(VACATION_OBJECT_LABELS).map(v=>v.toLowerCase());
 function getVacationObjectLabel(){return VACATION_OBJECT_LABELS[data.settings.lang]||VACATION_OBJECT_LABELS.lt;}
-function isVacationObj(name){return VACATION_OBJECT_NAMES.includes(String(name||'').trim().toLowerCase());}
-function displayObjectName(name){return isVacationObj(name)?getVacationObjectLabel():String(name||'');}
+function isVacationObject(name){return VACATION_OBJECT_NAMES.includes(String(name||'').trim().toLowerCase());}
+function displayObjectName(name){return isVacationObject(name)?getVacationObjectLabel():String(name||'');}
 function localDate(dateStr){const[y,m,d]=dateStr.split('-').map(Number);return new Date(y,m-1,d);}
 function addDays(dateStr,days){const d=localDate(dateStr);d.setDate(d.getDate()+days);return dateToStr(d);}
 function formatVacationSetting(value){return Number(value).toFixed(2);}
@@ -1412,7 +1412,7 @@ function getVacationBalance(year){
   };
   const accrued=accruedFromDate(start,end);
   const usedDates=new Set();
-  data.entries.forEach(e=>{if(e.date>=calcStart&&e.date<=calcEnd)(e.objs||[]).forEach((o,i)=>{if(isVacationObj(o.obj))usedDates.add(`${e.id||e.date}-${i}`);});});
+  data.entries.forEach(e=>{if(e.date>=calcStart&&e.date<=calcEnd&&(e.objs||[]).some(o=>isVacationObject(o.obj)))usedDates.add(e.id||e.date);});
   return base+accrued-usedDates.size;
 }
 
