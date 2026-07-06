@@ -1395,11 +1395,10 @@ function getVacationBalance(year){
   const today=dateToStr(now);
   const hasManualBase=Number.isFinite(parseFloat(data.settings.vacationBase))&&!!data.settings.vacationBaseDate;
   const base=hasManualBase?parseFloat(data.settings.vacationBase):0;
-  if(hasManualBase&&data.settings.vacationBaseDate===today)return base;
   const baseDate=hasManualBase?data.settings.vacationBaseDate:`${year-1}-12-31`;
-  const calcStart=addDays(baseDate,1);
-  const calcEnd=year===now.getFullYear()?addDays(today,-1):`${year}-12-31`;
-  const start=localDate(calcStart),end=localDate(calcEnd);
+  const accrualStart=addDays(baseDate,1);
+  const accrualEnd=year===now.getFullYear()?addDays(today,-1):`${year}-12-31`;
+  const start=localDate(accrualStart),end=localDate(accrualEnd);
   const accruedFromDate=(from,to)=>{
     if(to<from)return 0;
     let total=0;
@@ -1410,9 +1409,11 @@ function getVacationBalance(year){
     }
     return total;
   };
-  const accrued=accruedFromDate(start,end);
+  const accrued=accrualStart>today?0:accruedFromDate(start,end);
+  const usedStart=hasManualBase?baseDate:accrualStart;
+  const usedEnd=year===now.getFullYear()?today:`${year}-12-31`;
   const usedDates=new Set();
-  data.entries.forEach(e=>{if(e.date>=calcStart&&e.date<=calcEnd&&(e.objs||[]).some(o=>isVacationObject(o.obj)))usedDates.add(e.id||e.date);});
+  data.entries.forEach(e=>{if(e.date>=usedStart&&e.date<=usedEnd&&(e.objs||[]).some(o=>isVacationObject(o.obj)))usedDates.add(e.id||e.date);});
   return base+accrued-usedDates.size;
 }
 
