@@ -1391,15 +1391,12 @@ function addDays(dateStr,days){const d=localDate(dateStr);d.setDate(d.getDate()+
 const VACATION_DAILY_ACCRUAL=20/365;
 function formatVacationSetting(value){return Number(value).toFixed(2);}
 function formatVacationDisplay(value){return Number(value).toFixed(1);}
-function getVacationBalance(year){
-  const now=new Date();
-  const today=dateToStr(now);
+function getVacationBalance(){
+  const today=dateToStr(new Date());
   const hasManualBase=Number.isFinite(parseFloat(data.settings.vacationBase))&&!!data.settings.vacationBaseDate;
   const base=hasManualBase?parseFloat(data.settings.vacationBase):0;
-  const baseDate=hasManualBase?data.settings.vacationBaseDate:`${year-1}-12-31`;
-  const accrualStart=addDays(baseDate,1);
-  const accrualEnd=year===now.getFullYear()?today:`${year}-12-31`;
-  const start=localDate(accrualStart),end=localDate(accrualEnd);
+  const baseDate=hasManualBase?data.settings.vacationBaseDate:null;
+  const accrualStart=baseDate?addDays(baseDate,1):null;
   const accruedFromDate=(from,to)=>{
     if(to<from)return 0;
     let total=0;
@@ -1410,16 +1407,13 @@ function getVacationBalance(year){
     }
     return total;
   };
-  const accrued=accrualStart>today?0:accruedFromDate(start,end);
-  const usedStart=hasManualBase?baseDate:accrualStart;
-  const usedEnd=year===now.getFullYear()?today:`${year}-12-31`;
+  const accrued=accrualStart&&accrualStart<=today?accruedFromDate(localDate(accrualStart),localDate(today)):0;
   const usedDays=data.entries.reduce((sum,e)=>{
-    if(e.date<usedStart||e.date>usedEnd)return sum;
+    if(baseDate&&e.date<baseDate)return sum;
     return sum+(e.objs||[]).filter(o=>isVacationObject(o.obj)).length;
   },0);
   return base+accrued-usedDays;
 }
-
 // #endregion Vacation
 
 // #region Statistics
