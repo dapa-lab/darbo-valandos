@@ -1413,20 +1413,19 @@ function getVacationBalance(year){
 
 // #region Statistics
 function renderEntries(){
-  const fObj=(document.getElementById('f-obj')?.value||'').toLowerCase();
+  const fObj=(document.getElementById('f-obj')?.value||'').trim().toLowerCase();
   const dateFrom=document.getElementById('f-from')?.value||'';
   const dateTo=document.getElementById('f-to')?.value||'';
   const dl=document.getElementById('f-obj-list');
   if(dl)dl.innerHTML=getKnownObjs().map(o=>`<option value="${escH(o)}">`).join('');
 
-  const hasDateFilter=!!(dateFrom||dateTo);
-  const shouldLimitToCurrentMonth=!fObj||hasDateFilter;
+  const shouldLimitToCurrentMonth=!(fObj||dateFrom||dateTo);
   const filtered=data.entries.filter(e=>{
     const[y,m]=e.date.split('-').map(Number);
     if(shouldLimitToCurrentMonth&&(y!==curYear||m-1!==curMonth))return false;
     if(dateFrom&&e.date<dateFrom)return false;
     if(dateTo&&e.date>dateTo)return false;
-    if(fObj&&!(e.objs||[]).some(o=>o.obj.toLowerCase().includes(fObj)))return false;
+    if(fObj&&!(e.objs||[]).some(o=>String(o.obj||'').toLowerCase().includes(fObj)))return false;
     return true;
   });
 
