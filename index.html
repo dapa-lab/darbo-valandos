@@ -755,7 +755,7 @@ const THEME_MODES={
 // #endregion Theme
 
 // #region State
-let data={entries:[],payments:{},expenses:{},settings:{rate:0,lunch:30,start:'07:00',end:'17:00',theme:'dark',mode:'dark',vacationBase:null,vacationBaseDate:null,lang:'lt'}};
+let data={entries:[],payments:{},expenses:{},settings:{rate:0,lunch:30,start:'07:00',end:'17:00',theme:'dark',mode:'dark',vacationBase:null,vacationBaseDate:null,vacationUsedAtBase:0,lang:'lt'}};
 let currentUser=null;
 let saveTimer=null;
 let isLoadingFromCloud=false;
@@ -974,6 +974,7 @@ function mergeDefaults(d){
   d.settings.mode=(d.settings.mode==='light'||d.settings.theme==='lavender'||d.settings.theme==='rose'||d.settings.theme==='sand'||d.settings.theme==='mint'||d.settings.theme==='ivory'||d.settings.theme==='midnight')?'light':(d.settings.mode||'dark');
   if(!('vacationBase' in d.settings))d.settings.vacationBase=null;
   if(!('vacationBaseDate' in d.settings))d.settings.vacationBaseDate=null;
+  if(!('vacationUsedAtBase' in d.settings))d.settings.vacationUsedAtBase=0;
   d.settings.lang=d.settings.lang||localStorage.getItem('dv-login-lang')||'lt';
   d._isNewUser=isNew;
   return d;
@@ -1136,6 +1137,7 @@ function saveVacationSetting(presetValue){
   }
   data.settings.vacationBase=val;
   data.settings.vacationBaseDate=new Date().toISOString().split('T')[0];
+  data.settings.vacationUsedAtBase=countVacationObjects();
   save();toast(t('saved_settings'));renderEntries();renderCalendar();updateSummary();
   if(inp){
     inp.value=formatVacationSetting(data.settings.vacationBase);
@@ -1422,6 +1424,9 @@ function addDays(dateStr,days){const d=localDate(dateStr);d.setDate(d.getDate()+
 const VACATION_DAILY_ACCRUAL=20/365;
 function formatVacationSetting(value){return Number(value).toFixed(2);}
 function formatVacationDisplay(value){return Number(value).toFixed(1);}
+function countVacationObjects(){
+  return data.entries.reduce((sum,e)=>sum+(e.objs||[]).filter(o=>isVacationObject(o.obj)).length,0);
+}
 function getVacationBalance(){
   const today=dateToStr(new Date());
   const hasManualBase=Number.isFinite(parseFloat(data.settings.vacationBase))&&!!data.settings.vacationBaseDate;
@@ -1439,11 +1444,9 @@ function getVacationBalance(){
     return total;
   };
   const accrued=accrualStart&&accrualStart<=today?accruedFromDate(localDate(accrualStart),localDate(today)):0;
-  const usedDays=data.entries.reduce((sum,e)=>{
-    if(baseDate&&e.date<=baseDate)return sum;
-    return sum+(e.objs||[]).filter(o=>isVacationObject(o.obj)).length;
-  },0);
-  return base+accrued-usedDays;
+  const usedAtBase=hasManualBase?(parseFloat(data.settings.vacationUsedAtBase)||0):0;
+  const usedAfterBase=Math.max(0,countVacationObjects()-usedAtBase);
+  return base+accrued-usedAfterBase;
 }
 // #endregion Vacation
 
