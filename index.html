@@ -190,6 +190,12 @@ textarea{resize:vertical;min-height:52px;}
 .rate-hint{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;padding:14px 16px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:14px;}
 .setting-row:last-child{border:none;}
 .setting-row input,.setting-row select{width:130px;}
+.vacation-edit-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.vacation-edit-wrap input{width:130px;}
+.vacation-edit-wrap #vacation-confirm-btn{display:none;}
+.vacation-edit-wrap.editing #vacation-confirm-btn{display:inline-flex;}
+.vacation-edit-wrap.editing #vacation-edit-btn{display:none;}
+.vacation-edit-wrap input[readonly]{opacity:.78;cursor:default;}
 .s-label{font-size:14px;}.s-desc{font-size:12px;color:var(--text2);margin-top:2px;}
 .lang-row{display:flex;gap:8px;margin-top:4px;}
 .lang-btn{flex:1;border:2px solid var(--border);border-radius:7px;padding:8px;cursor:pointer;text-align:center;font-size:13px;font-weight:700;background:var(--surface2);color:var(--text2);transition:.2s;}
@@ -507,7 +513,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     <div class="card-title" data-i="set_general">Bendra</div>
     <div class="setting-row"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="s-desc" data-i="rate_unit">€/val</div></div><input type="number" id="set-rate" placeholder="€/val" min="0" step="0.5" onchange="saveSettings();hideRateHint()" onkeydown="if(event.key==='Enter')hideRateHint()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_lunch">Pietų pertrauka</div><div class="s-desc" data-i="set_lunch_desc">Minutės</div></div><input type="number" id="set-lunch" value="30" min="0" onchange="saveSettings()"></div>
-    <div class="setting-row"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div><div class="s-desc" data-i="set_vacation_desc">Darbo dienos nuo šiandien</div></div><input type="text" id="set-vacation" inputmode="decimal" onchange="saveVacationSetting()"></div>
+    <div class="setting-row setting-row-vacation"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div><div class="s-desc" data-i="set_vacation_desc">Darbo dienos nuo šiandien</div></div><div class="vacation-edit-wrap"><input type="text" id="set-vacation" inputmode="decimal" readonly><button class="btn btn-ghost btn-sm" id="vacation-edit-btn" onclick="enableVacationEdit()" data-i="btn_edit_vacation">Redaguoti</button><button class="btn btn-primary btn-sm" id="vacation-confirm-btn" onclick="confirmVacationSetting()" data-i="btn_confirm">Patvirtinti</button></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_start">Pradžios laikas</div></div><div id="set-start-holder"></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_end">Pabaigos laikas</div></div><div id="set-end-holder"></div></div>
   </div>
@@ -652,7 +658,7 @@ const LANGS={
     manage_tags_btn:'Redaguoti sąrašą',manage_tags_title:'Komentarų sąrašas',new_tag_ph:'Naujas komentaras...',btn_close:'Uždaryti',confirm_del_tag:'Ištrinti šį komentarą iš sąrašo?',
     tag_default_salary:'Alga',tag_default_perdiem:'Komandiruotpinigiai',tag_default_mail:'Paštas',
     btn_add:'＋ Pridėti',btn_save:'Išsaugoti',btn_cancel:'Atšaukti',btn_delete_yes:'Taip, ištrinti',
-    set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',set_vacation_balance:'Atostogų likutis',set_vacation_desc:'Darbo dienos nuo šiandien',rate_unit:'€/val',
+    set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',set_vacation_balance:'Atostogų likutis',set_vacation_desc:'Darbo dienos nuo šiandien',rate_unit:'€/val',btn_edit_vacation:'Redaguoti',btn_confirm:'Patvirtinti',confirm_vacation_update:'Ar norite atnaujinti atostogų valandų skaičiavimą?',
     rate_hint_text:'👋 Sveiki! Pirmiausia įveskite savo valandinį atlygį.',
     set_start:'Pradžios laikas',set_end:'Pabaigos laikas',set_theme:'Tema',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Kalba',
     set_data:'Duomenys',set_import:'Importuoti',set_sync:'Saugojimas',sync_active:'Prisijungta debesyje',
@@ -684,7 +690,7 @@ const LANGS={
     manage_tags_btn:'Edit list',manage_tags_title:'Comment list',new_tag_ph:'New comment...',btn_close:'Close',confirm_del_tag:'Delete this comment from the list?',
     tag_default_salary:'Salary',tag_default_perdiem:'Per diem',tag_default_mail:'Mail',
     btn_add:'＋ Add',btn_save:'Save',btn_cancel:'Cancel',btn_delete_yes:'Yes, delete',
-    set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',set_vacation_balance:'Vacation balance',set_vacation_desc:'Work days from today',rate_unit:'€/hr',
+    set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',set_vacation_balance:'Vacation balance',set_vacation_desc:'Work days from today',rate_unit:'€/hr',btn_edit_vacation:'Edit',btn_confirm:'Confirm',confirm_vacation_update:'Do you want to update vacation hours calculation?',
     rate_hint_text:'👋 Welcome! First, enter your hourly rate.',
     set_start:'Start time',set_end:'End time',set_theme:'Theme',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Language',
     set_data:'Data',set_import:'Import',set_sync:'Storage',sync_active:'synced to cloud',
@@ -716,7 +722,7 @@ const LANGS={
     manage_tags_btn:'Изменить список',manage_tags_title:'Список комментариев',new_tag_ph:'Новый комментарий...',btn_close:'Закрыть',confirm_del_tag:'Удалить этот комментарий из списка?',
     tag_default_salary:'Зарплата',tag_default_perdiem:'Суточные',tag_default_mail:'Почта',
     btn_add:'＋ Добавить',btn_save:'Сохранить',btn_cancel:'Отмена',btn_delete_yes:'Да, удалить',
-    set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',set_vacation_balance:'Остаток отпуска',set_vacation_desc:'Рабочие дни с сегодняшнего дня',rate_unit:'€/ч',
+    set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',set_vacation_balance:'Остаток отпуска',set_vacation_desc:'Рабочие дни с сегодняшнего дня',rate_unit:'€/ч',btn_edit_vacation:'Редактировать',btn_confirm:'Подтвердить',confirm_vacation_update:'Хотите обновить расчет отпускных часов?',
     rate_hint_text:'👋 Добро пожаловать! Сначала введите свою почасовую ставку.',
     set_start:'Начало работы',set_end:'Конец работы',set_theme:'Тема',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Язык',
     set_data:'Данные',set_import:'Импорт',set_sync:'Хранение',sync_active:'синхронизировано с облаком',
@@ -1087,6 +1093,8 @@ function loadSettings(){
   if(vacInput){
     const manualBase=parseFloat(s.vacationBase);
     vacInput.value=Number.isFinite(manualBase)?formatVacationSetting(manualBase):formatVacationSetting(getVacationBalance(new Date().getFullYear()));
+    vacInput.readOnly=true;
+    vacInput.closest('.vacation-edit-wrap')?.classList.remove('editing');
   }
   document.getElementById('set-start-holder').innerHTML=time24Picker('set-start',s.start||'07:00','settings',0,'start');
   document.getElementById('set-end-holder').innerHTML=time24Picker('set-end',s.end||'17:00','settings',0,'end');
@@ -1098,7 +1106,15 @@ function saveSettings(){
   data.settings.end=t24GetValue('set-end')||'17:00';
   save();toast(t('saved_settings'));renderEntries();renderFinances();
 }
-function saveVacationSetting(){
+function enableVacationEdit(){
+  const inp=document.getElementById('set-vacation');
+  if(!inp)return;
+  inp.readOnly=false;
+  inp.closest('.vacation-edit-wrap')?.classList.add('editing');
+  inp.focus();
+  inp.select();
+}
+function confirmVacationSetting(){
   const inp=document.getElementById('set-vacation');
   const raw=String(inp?.value??'').trim().replace(/,/g,'.');
   const val=/^-?(?:\d+|\d*\.\d+)$/.test(raw)?Number(raw):NaN;
@@ -1107,10 +1123,25 @@ function saveVacationSetting(){
     toast('⚠️ '+t('err_vacation_balance'),true);
     return;
   }
+  confirm2(t('confirm_vacation_update'),()=>saveVacationSetting(val),t('btn_confirm'));
+}
+function saveVacationSetting(presetValue){
+  const inp=document.getElementById('set-vacation');
+  const raw=String(inp?.value??'').trim().replace(/,/g,'.');
+  const val=Number.isFinite(presetValue)?presetValue:(/^-?(?:\d+|\d*\.\d+)$/.test(raw)?Number(raw):NaN);
+  if(!Number.isFinite(val)||val<-99){
+    showErrField('set-vacation');
+    toast('⚠️ '+t('err_vacation_balance'),true);
+    return;
+  }
   data.settings.vacationBase=val;
   data.settings.vacationBaseDate=new Date().toISOString().split('T')[0];
-  save();toast(t('saved_settings'));renderEntries();renderCalendar();
-  if(inp)inp.value=formatVacationSetting(data.settings.vacationBase);
+  save();toast(t('saved_settings'));renderEntries();renderCalendar();updateSummary();
+  if(inp){
+    inp.value=formatVacationSetting(data.settings.vacationBase);
+    inp.readOnly=true;
+    inp.closest('.vacation-edit-wrap')?.classList.remove('editing');
+  }
 }
 
 // #endregion Settings
@@ -1409,7 +1440,7 @@ function getVacationBalance(){
   };
   const accrued=accrualStart&&accrualStart<=today?accruedFromDate(localDate(accrualStart),localDate(today)):0;
   const usedDays=data.entries.reduce((sum,e)=>{
-    if(baseDate&&e.date<baseDate)return sum;
+    if(baseDate&&e.date<=baseDate)return sum;
     return sum+(e.objs||[]).filter(o=>isVacationObject(o.obj)).length;
   },0);
   return base+accrued-usedDays;
