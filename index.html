@@ -1215,10 +1215,13 @@ function toMin(tv){if(!tv)return 0;const[h,m]=tv.split(':').map(Number);return h
 function addHr(tv,h){const[hh,mm]=tv.split(':').map(Number);const tot=hh*60+mm+Math.round(h*60);return`${String(Math.floor(tot/60)%24).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;}
 
 function getKnownObjs(){
-  const seen=new Set(['Atostogos']),res=['Atostogos'];
+  const vacationLabel=getVacationObjectLabel();
+  const seen=new Set([vacationLabel]),res=[vacationLabel];
   for(let i=data.entries.length-1;i>=0;i--)
-    for(const o of(data.entries[i].objs||[]))
-      if(o.obj&&!seen.has(o.obj)){seen.add(o.obj);res.push(o.obj);}
+    for(const o of(data.entries[i].objs||[])){
+      const obj=displayObjectName(o.obj);
+      if(obj&&!seen.has(obj)){seen.add(obj);res.push(obj);}
+    }
   return res;
 }
 
@@ -1320,7 +1323,7 @@ function renderBlocksTo(blocks,container,pfx,removeFn,multFn,changeFn,totalFn){
         ${blocks.length>1?`<button class="btn-dout" onclick="${removeFn}(${i})">${t('remove_obj')}</button>`:''}
       </div>
       <div class="frow">
-        <input type="text" id="${pfx}-obj-${i}" list="${pfx}-ol-${i}" value="${escH(b.obj)}" placeholder="${t('add_obj_ph')}" onfocus="dlFocus(this)" onblur="dlBlur(this,true)"
+        <input type="text" id="${pfx}-obj-${i}" list="${pfx}-ol-${i}" value="${escH(displayObjectName(b.obj))}" placeholder="${t('add_obj_ph')}" onfocus="dlFocus(this)" onblur="dlBlur(this,true)"
           oninput="${pfx}Blocks[${i}].obj=this.value;this.classList.remove('err-field')">
         <datalist id="${pfx}-ol-${i}">${objs.map(o=>`<option value="${escH(o)}">`).join('')}</datalist>
       </div>
@@ -1378,7 +1381,11 @@ function addEntry(){
 function changeMonth(d){curMonth+=d;if(curMonth>11){curMonth=0;curYear++;}if(curMonth<0){curMonth=11;curYear--;}updateMonthLabel();renderEntries();renderCalendar();}
 function updateMonthLabel(){document.getElementById('month-label').textContent=new Date(curYear,curMonth).toLocaleDateString(t('locale'),{month:'long',year:'numeric'});}
 
-function isVacationObj(name){return String(name||'').trim().toLowerCase()==='atostogos';}
+const VACATION_OBJECT_LABELS={lt:'Atostogos',en:'Vacation',ru:'Отпуск'};
+const VACATION_OBJECT_NAMES=Object.values(VACATION_OBJECT_LABELS).map(v=>v.toLowerCase());
+function getVacationObjectLabel(){return VACATION_OBJECT_LABELS[data.settings.lang]||VACATION_OBJECT_LABELS.lt;}
+function isVacationObj(name){return VACATION_OBJECT_NAMES.includes(String(name||'').trim().toLowerCase());}
+function displayObjectName(name){return isVacationObj(name)?getVacationObjectLabel():String(name||'');}
 function localDate(dateStr){const[y,m,d]=dateStr.split('-').map(Number);return new Date(y,m-1,d);}
 function addDays(dateStr,days){const d=localDate(dateStr);d.setDate(d.getDate()+days);return dateToStr(d);}
 function formatVacationSetting(value){return Number(value).toFixed(2);}
@@ -1405,7 +1412,7 @@ function getVacationBalance(year){
   };
   const accrued=accruedFromDate(start,end);
   const usedDates=new Set();
-  data.entries.forEach(e=>{if(e.date>=calcStart&&e.date<=calcEnd&&(e.objs||[]).some(o=>isVacationObj(o.obj)))usedDates.add(e.date);});
+  data.entries.forEach(e=>{if(e.date>=calcStart&&e.date<=calcEnd)(e.objs||[]).forEach((o,i)=>{if(isVacationObj(o.obj))usedDates.add(`${e.id||e.date}-${i}`);});});
   return base+accrued-usedDates.size;
 }
 
@@ -1425,7 +1432,7 @@ function renderEntries(){
     if(shouldLimitToCurrentMonth&&(y!==curYear||m-1!==curMonth))return false;
     if(dateFrom&&e.date<dateFrom)return false;
     if(dateTo&&e.date>dateTo)return false;
-    if(fObj&&!(e.objs||[]).some(o=>String(o.obj||'').toLowerCase().includes(fObj)))return false;
+    if(fObj&&!(e.objs||[]).some(o=>displayObjectName(o.obj).toLowerCase().includes(fObj)))return false;
     return true;
   });
 
@@ -1452,7 +1459,7 @@ function renderEntries(){
 
   list.innerHTML=filteredDesc.map(e=>{
     const th=entryHours(e);const cc=colorClass(e.date);
-    const objRows=(e.objs||[]).map(o=>`<div class="entry-obj-row"><span>${escH(o.obj)} <span style="opacity:.6">${formatTimeDisplay(o.from)}–${formatTimeDisplay(o.to)}${o.mult?` ×${o.mult}`:''}</span></span><span>${o.hours}${t('week_val')}</span></div>`).join('');
+    const objRows=(e.objs||[]).map(o=>`<div class="entry-obj-row"><span>${escH(displayObjectName(o.obj))} <span style="opacity:.6">${formatTimeDisplay(o.from)}–${formatTimeDisplay(o.to)}${o.mult?` ×${o.mult}`:''}</span></span><span>${o.hours}${t('week_val')}</span></div>`).join('');
     const driveRow=e.drive?`<div class="entry-drive">🚗 ${t('add_drive').replace('🚗 ','')}${e.comment?' · '+escH(e.comment):''}</div>`:(e.comment?`<div style="font-size:12px;color:var(--text2);margin-top:4px">${escH(e.comment)}</div>`:'');
     return`<div class="entry-wrap" id="ew-${e.id}">
       <div class="entry-actions" id="ea-${e.id}">
