@@ -1419,9 +1419,11 @@ function renderEntries(){
   const dl=document.getElementById('f-obj-list');
   if(dl)dl.innerHTML=getKnownObjs().map(o=>`<option value="${escH(o)}">`).join('');
 
+  const hasDateFilter=!!(dateFrom||dateTo);
+  const shouldLimitToCurrentMonth=!fObj||hasDateFilter;
   const filtered=data.entries.filter(e=>{
     const[y,m]=e.date.split('-').map(Number);
-    if(y!==curYear||m-1!==curMonth)return false;
+    if(shouldLimitToCurrentMonth&&(y!==curYear||m-1!==curMonth))return false;
     if(dateFrom&&e.date<dateFrom)return false;
     if(dateTo&&e.date>dateTo)return false;
     if(fObj&&!(e.objs||[]).some(o=>o.obj.toLowerCase().includes(fObj)))return false;
