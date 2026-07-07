@@ -231,6 +231,7 @@ textarea{resize:vertical;min-height:52px;}
 .cal-day:hover{border-color:var(--accent);}
 .cal-day.cal-empty{background:transparent;border:none;cursor:default;padding:0;}
 .cal-day.filled{background:rgba(34,197,94,.18);border-color:var(--success);color:var(--success);}
+.cal-day.filled.vacation{background:rgba(245,158,11,.18);border-color:var(--warning);color:var(--warning);}
 .cal-day.today{box-shadow:0 0 0 2px var(--accent);}
 .cal-day .cal-hrs{font-size:9px;font-weight:500;opacity:.8;margin-top:1px;}
 .cal-day-card{margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;}
@@ -1612,21 +1613,25 @@ function renderCalendar(){
   const dayMap={};
   data.entries.forEach(e=>{
     const[y,m]=e.date.split('-').map(Number);
-    if(y===curYear&&m-1===curMonth)dayMap[e.date]=entryHours(e);
+    if(y===curYear&&m-1===curMonth){
+      dayMap[e.date]={hours:entryHours(e),isVacation:(e.objs||[]).some(o=>isVacationObject(o.obj))};
+    }
   });
 
   let html='';
   for(let i=0;i<startOffset;i++)html+='<div class="cal-day cal-empty"></div>';
   for(let d=1;d<=daysInMonth;d++){
     const ds=`${curYear}-${String(curMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const hrs=dayMap[ds];
-    const filled=hrs!==undefined;
+    const dayInfo=dayMap[ds];
+    const hrs=dayInfo?.hours;
+    const filled=!!dayInfo;
+    const isVacation=!!dayInfo?.isVacation;
     const isToday=ds===todayStr;
     const dow=new Date(curYear,curMonth,d).getDay();
     const isWeekend=(dow===0||dow===6);
     const isHoliday=holidays.has(ds);
     const numClass=(isWeekend||isHoliday)?' cal-num-red':'';
-    html+=`<div class="cal-day${filled?' filled':''}${isToday?' today':''}" onclick="showCalDay('${ds}')" title="${isHoliday?t('cal_holiday'):''}">
+    html+=`<div class="cal-day${filled?' filled':''}${isVacation?' vacation':''}${isToday?' today':''}" onclick="showCalDay('${ds}')" title="${isHoliday?t('cal_holiday'):''}">
       <div class="cal-num${numClass}">${d}</div>${filled?`<div class="cal-hrs">${hrs.toFixed(1)}${t('week_val')}</div>`:''}
     </div>`;
   }
