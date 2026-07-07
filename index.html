@@ -186,15 +186,18 @@ textarea{resize:vertical;min-height:52px;}
 .exp-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
 .exp-desc-row{display:flex;gap:6px;align-items:flex-start;}
 .exp-desc-row>div{flex:1;}
-.setting-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);}
+.setting-row{--setting-control-height:44px;--setting-control-width:min(70%,320px);display:grid;grid-template-columns:minmax(0,1fr) var(--setting-control-width);gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);}
 .rate-hint{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;padding:14px 16px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:14px;}
 .setting-row:last-child{border:none;}
-.setting-row input,.setting-row select{width:130px;}
+.setting-row>div:last-child{width:100%;min-width:0;}
+.setting-row input,.setting-row select{width:100%;height:var(--setting-control-height);padding:0 11px;}
+.setting-row .t24-picker{width:100%;height:var(--setting-control-height);}
+.setting-row .t24-native{height:100%;padding:0 11px!important;}
 .setting-row-vacation{align-items:center;}
-.vacation-edit-wrap{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;justify-content:flex-end;width:130px;}
-.vacation-edit-wrap input{flex:1 1 auto;min-width:0;width:auto;}
+.vacation-edit-wrap{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;justify-content:flex-end;width:100%;}
+.vacation-edit-wrap input{flex:1 1 auto;min-width:0;width:auto;height:var(--setting-control-height);}
 .setting-row-vacation .btn{white-space:nowrap;flex:0 0 auto;}
-#vacation-edit-btn,#vacation-confirm-btn{width:38px;height:38px;padding:0;display:inline-flex;align-items:center;justify-content:center;}
+#vacation-edit-btn,#vacation-confirm-btn{width:var(--setting-control-height);height:var(--setting-control-height);padding:0;display:inline-flex;align-items:center;justify-content:center;}
 #vacation-edit-btn svg{width:16px;height:16px;}
 #vacation-confirm-btn{border:1px solid var(--success);background:transparent;color:var(--success);font-size:12px;font-weight:700;}
 #vacation-confirm-btn:hover{background:rgba(34,197,94,.12);border-color:var(--success);color:var(--success);}
@@ -325,13 +328,10 @@ textarea{resize:vertical;min-height:52px;}
   .filter-dates input,.filter-dates .range-field{flex:1;}
   .filter-dates input,.filter-dates .range-field,.filter-obj-row input{font-size:14px;padding:9px 12px;}
 
-  .setting-row{gap:24px;}
-  .setting-row>div:last-child{width:min(42%,392px);}
-  .setting-row input,.setting-row select{width:100%;height:52px;padding:0 15px;}
-  .setting-row .t24-picker{width:100%;height:52px;}
-  .setting-row .t24-native{height:100%;padding:0 13px!important;}
-  .vacation-edit-wrap{width:100%;gap:10px;}
-  #vacation-edit-btn,#vacation-confirm-btn{width:52px;height:52px;}
+  .setting-row{--setting-control-height:52px;--setting-control-width:min(42%,392px);gap:24px;}
+  .setting-row input,.setting-row select{padding:0 15px;}
+  .setting-row .t24-native{padding:0 13px!important;}
+  .vacation-edit-wrap{gap:10px;}
   #vacation-edit-btn svg{width:20px;height:20px;}
 
   /* finance rows: let date/amount fields share width proportionally, no dead space on the right */
