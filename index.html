@@ -1457,6 +1457,20 @@ function countVacationObjects(options={}){
   const ignored=new Set(options.ignoreSaved?(data.settings.vacationIgnoredObjects||[]):[]);
   return data.entries.reduce((sum,e)=>sum+(e.objs||[]).filter((o,i)=>isVacationObject(o.obj)&&!ignored.has(vacationObjectKey(e,o,i))).length,0);
 }
+function getVacationObjectKeySet(entry){
+  return new Set((entry?.objs||[]).map((o,i)=>isVacationObject(o.obj)?vacationObjectKey(entry,o,i):null).filter(Boolean));
+}
+function restoreDeletedVacationObjects(deletedKeys){
+  if(!deletedKeys?.size||!Array.isArray(data.settings.vacationIgnoredObjects))return;
+  const ignored=new Set(data.settings.vacationIgnoredObjects);
+  let restored=0;
+  deletedKeys.forEach(k=>{if(ignored.delete(k))restored++;});
+  if(!restored)return;
+  data.settings.vacationIgnoredObjects=[...ignored];
+  if(Number.isFinite(parseFloat(data.settings.vacationBase))){
+    data.settings.vacationBase=parseFloat(data.settings.vacationBase)+restored;
+  }
+}
 function getVacationBalance(){
   const today=dateToStr(new Date());
   const hasManualBase=Number.isFinite(parseFloat(data.settings.vacationBase))&&!!data.settings.vacationBaseDate;
@@ -1674,7 +1688,12 @@ document.addEventListener('keydown',function(e){
 // #endregion UI Gestures
 
 // #region Time Entries
-function deleteEntry(id){confirm2(t('confirm_del_entry'),()=>{data.entries=data.entries.filter(e=>e.id!==id);save();renderEntries();toast(t('saved_deleted'));});}
+function deleteEntry(id){confirm2(t('confirm_del_entry'),()=>{
+  const entry=data.entries.find(e=>e.id===id);
+  restoreDeletedVacationObjects(getVacationObjectKeySet(entry));
+  data.entries=data.entries.filter(e=>e.id!==id);
+  save();renderEntries();renderCalendar();loadSettings();toast(t('saved_deleted'));
+});}
 
 function openEdit(id){
   const e=data.entries.find(e=>e.id===id);if(!e)return;
@@ -1720,9 +1739,13 @@ function saveEdit(){
   const newObjs=editBlocks.map((b,i)=>({obj:b.obj.trim(),from:b.from,to:b.to,hours:parseFloat(calcH(b,i===0).toFixed(2)),mult:b.mult||null}));
   if(hasOverlap(date,newObjs,editId)){toast('⚠️ '+t('err_overlap'),true);return;}
   const idx=data.entries.findIndex(e=>e.id===editId);if(idx<0)return;
+  const oldVacationKeys=getVacationObjectKeySet(data.entries[idx]);
   data.entries[idx]={...data.entries[idx],date,objs:newObjs,drive:document.getElementById('edit-drive').checked,comment:document.getElementById('edit-comment').value.trim()};
+  const newVacationKeys=getVacationObjectKeySet(data.entries[idx]);
+  oldVacationKeys.forEach(k=>{if(newVacationKeys.has(k))oldVacationKeys.delete(k);});
+  restoreDeletedVacationObjects(oldVacationKeys);
   data.entries.sort((a,b)=>a.date.localeCompare(b.date));
-  save();closeEdit();renderEntries();toast(t('saved_edit'));
+  save();closeEdit();renderEntries();renderCalendar();loadSettings();toast(t('saved_edit'));
 }
 
 // #endregion Time Entries
