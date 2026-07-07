@@ -190,12 +190,12 @@ textarea{resize:vertical;min-height:52px;}
 .rate-hint{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;padding:14px 16px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:14px;}
 .setting-row:last-child{border:none;}
 .setting-row input,.setting-row select{width:130px;}
-.vacation-edit-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-start;width:130px;}
-.vacation-edit-wrap input{width:78px;}
-.setting-row-vacation .vacation-edit-wrap{flex-wrap:nowrap;align-self:center;}
-.setting-row-vacation .btn{white-space:nowrap;}
-#vacation-edit-btn,#vacation-confirm-btn{width:32px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;}
-#vacation-edit-btn svg{width:14px;height:14px;}
+.setting-row-vacation{align-items:center;}
+.vacation-edit-wrap{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;justify-content:flex-end;width:130px;}
+.vacation-edit-wrap input{flex:1 1 auto;min-width:0;width:auto;}
+.setting-row-vacation .btn{white-space:nowrap;flex:0 0 auto;}
+#vacation-edit-btn,#vacation-confirm-btn{width:38px;height:38px;padding:0;display:inline-flex;align-items:center;justify-content:center;}
+#vacation-edit-btn svg{width:16px;height:16px;}
 #vacation-confirm-btn{border:1px solid var(--success);background:transparent;color:var(--success);font-size:12px;font-weight:700;}
 #vacation-confirm-btn:hover{background:rgba(34,197,94,.12);border-color:var(--success);color:var(--success);}
 .vacation-edit-wrap #vacation-confirm-btn{display:none;}
@@ -324,6 +324,15 @@ textarea{resize:vertical;min-height:52px;}
   .filter-obj-row{max-width:none;}
   .filter-dates input,.filter-dates .range-field{flex:1;}
   .filter-dates input,.filter-dates .range-field,.filter-obj-row input{font-size:14px;padding:9px 12px;}
+
+  .setting-row{gap:24px;}
+  .setting-row>div:last-child{width:min(42%,392px);}
+  .setting-row input,.setting-row select{width:100%;height:52px;padding:0 15px;}
+  .setting-row .t24-picker{width:100%;height:52px;}
+  .setting-row .t24-native{height:100%;padding:0 13px!important;}
+  .vacation-edit-wrap{width:100%;gap:10px;}
+  #vacation-edit-btn,#vacation-confirm-btn{width:52px;height:52px;}
+  #vacation-edit-btn svg{width:20px;height:20px;}
 
   /* finance rows: let date/amount fields share width proportionally, no dead space on the right */
   .pay-row .frow:nth-child(1){flex:1.3;}
@@ -1108,6 +1117,7 @@ function loadSettings(){
   document.getElementById('set-end-holder').innerHTML=time24Picker('set-end',s.end||'17:00','settings',0,'end');
 }
 function saveSettings(){
+  resetVacationEditUi();
   data.settings.rate=parseFloat(document.getElementById('set-rate').value)||0;
   data.settings.lunch=parseInt(document.getElementById('set-lunch').value)||30;
   data.settings.start=t24GetValue('set-start')||'07:00';
@@ -1121,6 +1131,12 @@ function enableVacationEdit(){
   inp.closest('.vacation-edit-wrap')?.classList.add('editing');
   inp.focus();
   inp.select();
+}
+function resetVacationEditUi(){
+  const inp=document.getElementById('set-vacation');
+  if(!inp)return;
+  inp.readOnly=true;
+  inp.closest('.vacation-edit-wrap')?.classList.remove('editing');
 }
 function confirmVacationSetting(){
   const inp=document.getElementById('set-vacation');
@@ -1149,8 +1165,7 @@ function saveVacationSetting(presetValue){
   save();toast(t('saved_settings'));renderEntries();renderCalendar();updateSummary();
   if(inp){
     inp.value=formatVacationSetting(data.settings.vacationBase);
-    inp.readOnly=true;
-    inp.closest('.vacation-edit-wrap')?.classList.remove('editing');
+    resetVacationEditUi();
   }
 }
 
