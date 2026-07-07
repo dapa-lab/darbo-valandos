@@ -190,12 +190,14 @@ textarea{resize:vertical;min-height:52px;}
 .rate-hint{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;padding:14px 16px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:14px;}
 .setting-row:last-child{border:none;}
 .setting-row input,.setting-row select{width:130px;}
-.vacation-edit-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.vacation-edit-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-start;width:130px;}
 .vacation-edit-wrap input{width:78px;}
 .setting-row-vacation .vacation-edit-wrap{flex-wrap:nowrap;align-self:center;}
 .setting-row-vacation .btn{white-space:nowrap;}
-#vacation-edit-btn{width:32px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;}
+#vacation-edit-btn,#vacation-confirm-btn{width:32px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;}
 #vacation-edit-btn svg{width:14px;height:14px;}
+#vacation-confirm-btn{border:1px solid var(--success);background:transparent;color:var(--success);font-size:12px;font-weight:700;}
+#vacation-confirm-btn:hover{background:rgba(34,197,94,.12);border-color:var(--success);color:var(--success);}
 .vacation-edit-wrap #vacation-confirm-btn{display:none;}
 .vacation-edit-wrap.editing #vacation-confirm-btn{display:inline-flex;}
 .vacation-edit-wrap.editing #vacation-edit-btn{display:none;}
@@ -517,7 +519,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     <div class="card-title" data-i="set_general">Bendra</div>
     <div class="setting-row"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="s-desc" data-i="rate_unit">€/val</div></div><input type="number" id="set-rate" placeholder="€/val" min="0" step="0.5" onchange="saveSettings();hideRateHint()" onkeydown="if(event.key==='Enter')hideRateHint()"></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_lunch">Pietų pertrauka</div><div class="s-desc" data-i="set_lunch_desc">Minutės</div></div><input type="number" id="set-lunch" value="30" min="0" onchange="saveSettings()"></div>
-    <div class="setting-row setting-row-vacation"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div></div><div class="vacation-edit-wrap"><input type="text" id="set-vacation" inputmode="decimal" readonly><button class="btn btn-ghost btn-sm" id="vacation-edit-btn" onclick="enableVacationEdit()" title="Redaguoti" aria-label="Redaguoti"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="M15 5l4 4"/></svg></button><button class="btn btn-primary btn-sm" id="vacation-confirm-btn" onclick="confirmVacationSetting()" data-i="btn_confirm">Patvirtinti</button></div></div>
+    <div class="setting-row setting-row-vacation"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div></div><div class="vacation-edit-wrap"><input type="text" id="set-vacation" inputmode="decimal" readonly><button class="btn btn-ghost btn-sm" id="vacation-edit-btn" onclick="enableVacationEdit()" title="Redaguoti" aria-label="Redaguoti"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="M15 5l4 4"/></svg></button><button class="btn btn-ghost btn-sm" id="vacation-confirm-btn" onclick="confirmVacationSetting()" title="OK" aria-label="OK">OK</button></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_start">Pradžios laikas</div></div><div id="set-start-holder"></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_end">Pabaigos laikas</div></div><div id="set-end-holder"></div></div>
   </div>
