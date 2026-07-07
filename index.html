@@ -1097,7 +1097,7 @@ function showPage(id,btn){
   if(ni>=0)document.querySelector('nav')?.style.setProperty('--nav-index',ni);
   if(id==='irasymai'){renderEntries();renderCalendar();}
   if(id==='finansai')renderFinances();
-  if(id==='nustatymai'){applyI18n();applyTheme();}
+  if(id==='nustatymai'){applyI18n();applyTheme();loadSettings();}
 }
 
 // #endregion UI
@@ -1109,8 +1109,7 @@ function loadSettings(){
   document.getElementById('set-lunch').value=s.lunch??30;
   const vacInput=document.getElementById('set-vacation');
   if(vacInput){
-    const manualBase=parseFloat(s.vacationBase);
-    vacInput.value=Number.isFinite(manualBase)?formatVacationSetting(manualBase):formatVacationSetting(getVacationBalance(new Date().getFullYear()));
+    vacInput.value=formatVacationSetting(getVacationBalance());
     vacInput.readOnly=true;
     vacInput.closest('.vacation-edit-wrap')?.classList.remove('editing');
   }
@@ -1430,7 +1429,7 @@ function addEntry(){
   document.getElementById('inp-drive').checked=false;
   document.getElementById('inp-comment').value='';
   document.getElementById('cmt-field').classList.remove('show');
-  initObjBlocks();toast(t('saved_entry'));renderEntries();
+  initObjBlocks();toast(t('saved_entry'));renderEntries();loadSettings();
 }
 
 function changeMonth(d){curMonth+=d;if(curMonth>11){curMonth=0;curYear++;}if(curMonth<0){curMonth=11;curYear--;}updateMonthLabel();renderEntries();renderCalendar();}
