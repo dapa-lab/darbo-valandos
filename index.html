@@ -1162,11 +1162,9 @@ function saveVacationSetting(presetValue){
   data.settings.vacationBaseDate=new Date().toISOString().split('T')[0];
   data.settings.vacationUsedAtBase=countVacationObjects();
   data.settings.vacationIgnoredObjects=getVacationObjectKeys();
+  if(inp)inp.value=formatVacationSetting(data.settings.vacationBase);
+  resetVacationEditUi();
   save();toast(t('saved_settings'));renderEntries();renderCalendar();updateSummary();
-  if(inp){
-    inp.value=formatVacationSetting(data.settings.vacationBase);
-    resetVacationEditUi();
-  }
 }
 
 // #endregion Settings
