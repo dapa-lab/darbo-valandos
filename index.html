@@ -1444,8 +1444,9 @@ function displayObjectName(name){return isVacationObject(name)?getVacationObject
 function localDate(dateStr){const[y,m,d]=dateStr.split('-').map(Number);return new Date(y,m-1,d);}
 function addDays(dateStr,days){const d=localDate(dateStr);d.setDate(d.getDate()+days);return dateToStr(d);}
 const VACATION_DAILY_ACCRUAL=20/365;
-function formatVacationSetting(value){return Number(value).toFixed(2);}
-function formatVacationDisplay(value){return Number(value).toFixed(1);}
+function formatVacationValue(value){return Number(value).toFixed(2);}
+function formatVacationSetting(value){return formatVacationValue(value);}
+function formatVacationDisplay(value){return formatVacationValue(value);}
 function vacationObjectKey(entry,obj,index){
   return [entry.id||'',entry.date||'',index,obj?.obj||'',obj?.from||'',obj?.to||''].join('|');
 }
