@@ -425,7 +425,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     <div class="frow"><label class="lbl" data-i="add_date">Data</label><input type="date" id="inp-date"></div>
     <div id="obj-blocks"></div>
     <div class="total-bar"><span data-i="add_total">Viso valandų (be pietų):</span><strong id="total-h-disp">0 val.</strong></div>
-    <button class="btn-add-obj" onclick="addObjBlock()" data-i="add_obj_btn">＋ Pridėti objektą</button>
+    <button class="btn-add-obj" id="add-obj-btn" onclick="addObjBlock()" data-i="add_obj_btn">＋ Pridėti objektą</button>
     <div class="check-row" style="margin-top:12px">
       <input type="checkbox" id="inp-drive" onchange="toggleCmt('cmt-field','inp-drive')">
       <label for="inp-drive" data-i="add_drive">🚗 Vairavau aš</label>
@@ -595,7 +595,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     <div class="frow"><label class="lbl" data-i="add_date">Data</label><input type="date" id="edit-date"></div>
     <div id="edit-obj-blocks"></div>
     <div class="total-bar"><span data-i="add_total">Viso valandų:</span><strong id="edit-total-h">0 val.</strong></div>
-    <button class="btn-add-obj" onclick="addEditObjBlock()" data-i="add_obj_btn">＋ Pridėti objektą</button>
+    <button class="btn-add-obj" id="edit-add-obj-btn" onclick="addEditObjBlock()" data-i="add_obj_btn">＋ Pridėti objektą</button>
     <div class="check-row" style="margin-top:10px"><input type="checkbox" id="edit-drive"><label for="edit-drive" data-i="add_drive">🚗 Vairavau aš</label></div>
     <div class="frow" style="margin-top:8px"><label class="lbl" data-i="add_comment_ph">Komentaras</label><input type="text" id="edit-comment"></div>
     <div style="display:flex;gap:8px;margin-top:12px">
@@ -674,7 +674,7 @@ const LANGS={
     manage_tags_btn:'Redaguoti sąrašą',manage_tags_title:'Komentarų sąrašas',new_tag_ph:'Naujas komentaras...',btn_close:'Uždaryti',confirm_del_tag:'Ištrinti šį komentarą iš sąrašo?',
     tag_default_salary:'Alga',tag_default_perdiem:'Komandiruotpinigiai',tag_default_mail:'Paštas',
     btn_add:'＋ Pridėti',btn_save:'Išsaugoti',btn_cancel:'Atšaukti',btn_delete_yes:'Taip, ištrinti',
-    set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',set_vacation_balance:'Atostogų likutis',rate_unit:'€/val',btn_edit_vacation:'Redaguoti',btn_confirm:'Patvirtinti',confirm_vacation_update:'Ar norite atnaujinti atostogų valandų skaičiavimą?',
+    set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',set_vacation_balance:'Atostogų likutis',rate_unit:'€/val',btn_edit_vacation:'Redaguoti',btn_confirm:'Patvirtinti',confirm_vacation_update:'Ar norite atnaujinti atostogų valandų skaičiavimą?',confirm_vacation_only:'Atostogos turi būti vienintelis objektas šiame įraše. Pašalinti kitus objektus?',
     rate_hint_text:'👋 Sveiki! Pirmiausia įveskite savo valandinį atlygį.',
     set_start:'Pradžios laikas',set_end:'Pabaigos laikas',set_theme:'Tema',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Kalba',
     set_data:'Duomenys',set_import:'Importuoti',set_sync:'Saugojimas',sync_active:'Prisijungta debesyje',
@@ -706,7 +706,7 @@ const LANGS={
     manage_tags_btn:'Edit list',manage_tags_title:'Comment list',new_tag_ph:'New comment...',btn_close:'Close',confirm_del_tag:'Delete this comment from the list?',
     tag_default_salary:'Salary',tag_default_perdiem:'Per diem',tag_default_mail:'Mail',
     btn_add:'＋ Add',btn_save:'Save',btn_cancel:'Cancel',btn_delete_yes:'Yes, delete',
-    set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',set_vacation_balance:'Vacation balance',rate_unit:'€/hr',btn_edit_vacation:'Edit',btn_confirm:'Confirm',confirm_vacation_update:'Do you want to update vacation hours calculation?',
+    set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',set_vacation_balance:'Vacation balance',rate_unit:'€/hr',btn_edit_vacation:'Edit',btn_confirm:'Confirm',confirm_vacation_update:'Do you want to update vacation hours calculation?',confirm_vacation_only:'Vacation must be the only object in this entry. Remove other objects?',
     rate_hint_text:'👋 Welcome! First, enter your hourly rate.',
     set_start:'Start time',set_end:'End time',set_theme:'Theme',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Language',
     set_data:'Data',set_import:'Import',set_sync:'Storage',sync_active:'synced to cloud',
@@ -738,7 +738,7 @@ const LANGS={
     manage_tags_btn:'Изменить список',manage_tags_title:'Список комментариев',new_tag_ph:'Новый комментарий...',btn_close:'Закрыть',confirm_del_tag:'Удалить этот комментарий из списка?',
     tag_default_salary:'Зарплата',tag_default_perdiem:'Суточные',tag_default_mail:'Почта',
     btn_add:'＋ Добавить',btn_save:'Сохранить',btn_cancel:'Отмена',btn_delete_yes:'Да, удалить',
-    set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',set_vacation_balance:'Остаток отпуска',rate_unit:'€/ч',btn_edit_vacation:'Редактировать',btn_confirm:'Подтвердить',confirm_vacation_update:'Хотите обновить расчет отпускных часов?',
+    set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',set_vacation_balance:'Остаток отпуска',rate_unit:'€/ч',btn_edit_vacation:'Редактировать',btn_confirm:'Подтвердить',confirm_vacation_update:'Хотите обновить расчет отпускных часов?',confirm_vacation_only:'Отпуск должен быть единственным объектом в этой записи. Удалить другие объекты?',
     rate_hint_text:'👋 Добро пожаловать! Сначала введите свою почасовую ставку.',
     set_start:'Начало работы',set_end:'Конец работы',set_theme:'Тема',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Язык',
     set_data:'Данные',set_import:'Импорт',set_sync:'Хранение',sync_active:'синхронизировано с облаком',
@@ -1160,7 +1160,7 @@ function saveVacationSetting(presetValue){
   }
   data.settings.vacationBase=val;
   data.settings.vacationBaseDate=new Date().toISOString().split('T')[0];
-  data.settings.vacationUsedAtBase=countVacationObjects();
+  data.settings.vacationUsedAtBase=countVacationEntries();
   data.settings.vacationIgnoredObjects=getVacationObjectKeys();
   if(inp)inp.value=formatVacationSetting(data.settings.vacationBase);
   resetVacationEditUi();
@@ -1316,6 +1316,7 @@ function initObjBlocks(){
   renderObjBlocks();updateTotalH();
 }
 function addObjBlock(){
+  if(objBlocks.some(b=>isVacationObject(b.obj)))return;
   const prev=objBlocks[objBlocks.length-1];
   const pt=prev.to||data.settings.end||'17:00';
   objBlocks.push({obj:'',from:pt,to:addHr(pt,1),mult:null});
@@ -1378,7 +1379,7 @@ function renderBlocksTo(blocks,container,pfx,removeFn,multFn,changeFn,totalFn){
       </div>
       <div class="frow">
         <input type="text" id="${pfx}-obj-${i}" list="${pfx}-ol-${i}" value="${escH(displayObjectName(b.obj))}" placeholder="${t('add_obj_ph')}" onfocus="dlFocus(this)" onblur="dlBlur(this,true)"
-          oninput="${pfx}Blocks[${i}].obj=this.value;this.classList.remove('err-field')">
+          oninput="${pfx}ObjectChanged(${i},this.value);this.classList.remove('err-field')">
         <datalist id="${pfx}-ol-${i}">${objs.map(o=>`<option value="${escH(o)}">`).join('')}</datalist>
       </div>
       <div class="time-row">
@@ -1399,7 +1400,7 @@ function renderBlocksTo(blocks,container,pfx,removeFn,multFn,changeFn,totalFn){
 }
 
 window.addBlocks=objBlocks;
-function renderObjBlocks(){window.addBlocks=objBlocks;renderBlocksTo(objBlocks,document.getElementById('obj-blocks'),'add','removeObjBlock','addMult','addChange',updateTotalH);}
+function renderObjBlocks(){window.addBlocks=objBlocks;renderBlocksTo(objBlocks,document.getElementById('obj-blocks'),'add','removeObjBlock','addMult','addChange',updateTotalH);updateAddObjectButtons();}
 function addChange(i){renderObjBlocks();updateTotalH();}
 function addMult(i,v){objBlocks[i].mult=objBlocks[i].mult===v?null:v;renderObjBlocks();updateTotalH();}
 
@@ -1417,12 +1418,17 @@ function addEntry(){
     toast('⚠️ '+t('err_time_same'),true);return;
   }
   if(!objBlocks.some((b,i)=>calcH(b,i===0)>0)){toast('⚠️ '+t('err_no_time'),true);return;}
+  if(objBlocks.some(b=>isVacationObject(b.obj)))objBlocks=objBlocks.filter(b=>isVacationObject(b.obj)).slice(0,1);
   const newObjs=objBlocks.map((b,i)=>({obj:b.obj.trim(),from:b.from,to:b.to,hours:parseFloat(calcH(b,i===0).toFixed(2)),mult:b.mult||null}));
+  const newIsVacation=newObjs.some(o=>isVacationObject(o.obj));
+  const ex=data.entries.find(e=>e.date===date);
+  const exIsVacation=(ex?.objs||[]).some(o=>isVacationObject(o.obj));
+  if(ex&&newIsVacation&&(ex.objs||[]).some(o=>!isVacationObject(o.obj))&&!confirm(t('confirm_vacation_only')))return;
+  if(exIsVacation&&!newIsVacation){toast('⚠️ '+t('confirm_vacation_only'),true);return;}
   if(hasOverlap(date,newObjs,null)){toast('⚠️ '+t('err_overlap'),true);return;}
   const drive=document.getElementById('inp-drive').checked;
   const comment=document.getElementById('inp-comment').value.trim();
-  const ex=data.entries.find(e=>e.date===date);
-  if(ex){ex.objs=(ex.objs||[]).concat(newObjs);if(drive)ex.drive=true;if(comment)ex.comment=[ex.comment,comment].filter(Boolean).join('; ');}
+  if(ex){ex.objs=newIsVacation?newObjs:(ex.objs||[]).concat(newObjs);if(drive)ex.drive=true;if(comment)ex.comment=[ex.comment,comment].filter(Boolean).join('; ');}
   else data.entries.push({id:Date.now(),date,objs:newObjs,drive,comment});
   data.entries.sort((a,b)=>a.date.localeCompare(b.date));
   save();
@@ -1442,7 +1448,7 @@ function isVacationObject(name){return VACATION_OBJECT_NAMES.includes(String(nam
 function displayObjectName(name){return isVacationObject(name)?getVacationObjectLabel():String(name||'');}
 function localDate(dateStr){const[y,m,d]=dateStr.split('-').map(Number);return new Date(y,m-1,d);}
 function addDays(dateStr,days){const d=localDate(dateStr);d.setDate(d.getDate()+days);return dateToStr(d);}
-const VACATION_DAILY_ACCRUAL=20/365;
+function vacationDailyAccrual(year){return 20/(new Date(year,1,29).getMonth()===1?366:365);}
 function formatVacationValue(value){return Number(value).toFixed(2);}
 function formatVacationSetting(value){return formatVacationValue(value);}
 function formatVacationDisplay(value){return formatVacationValue(value);}
@@ -1454,10 +1460,24 @@ function getVacationObjectKeys(){
   data.entries.forEach(e=>(e.objs||[]).forEach((o,i)=>{if(isVacationObject(o.obj))keys.push(vacationObjectKey(e,o,i));}));
   return keys;
 }
-function countVacationObjects(options={}){
+function countVacationEntries(options={}){
   const ignored=new Set(options.ignoreSaved?(data.settings.vacationIgnoredObjects||[]):[]);
-  return data.entries.reduce((sum,e)=>sum+(e.objs||[]).filter((o,i)=>isVacationObject(o.obj)&&!ignored.has(vacationObjectKey(e,o,i))).length,0);
+  return data.entries.reduce((sum,e)=>sum+((e.objs||[]).some((o,i)=>isVacationObject(o.obj)&&!ignored.has(vacationObjectKey(e,o,i)))?1:0),0);
 }
+function enforceVacationExclusivity(blocks,i){
+  if(!isVacationObject(blocks[i]?.obj))return true;
+  if(blocks.length===1)return true;
+  if(!confirm(t('confirm_vacation_only'))){blocks[i].obj='';return false;}
+  blocks.splice(0,blocks.length,{...blocks[i],obj:getVacationObjectLabel()});
+  return true;
+}
+function updateAddObjectButtons(){
+  const addBtn=document.getElementById('add-obj-btn'),editBtn=document.getElementById('edit-add-obj-btn');
+  if(addBtn)addBtn.style.display=objBlocks.some(b=>isVacationObject(b.obj))?'none':'';
+  if(editBtn)editBtn.style.display=editBlocks.some(b=>isVacationObject(b.obj))?'none':'';
+}
+function addObjectChanged(i,value){objBlocks[i].obj=value;enforceVacationExclusivity(objBlocks,i);renderObjBlocks();updateTotalH();}
+function editObjectChanged(i,value){editBlocks[i].obj=value;enforceVacationExclusivity(editBlocks,i);renderEditBlocks();updateEditTotalH();}
 function getVacationObjectKeySet(entry){
   return new Set((entry?.objs||[]).map((o,i)=>isVacationObject(o.obj)?vacationObjectKey(entry,o,i):null).filter(Boolean));
 }
@@ -1484,14 +1504,14 @@ function getVacationBalance(){
     for(let y=from.getFullYear();y<=to.getFullYear();y++){
       const yStart=new Date(y,0,1),yEnd=new Date(y,11,31);
       const a=from>yStart?from:yStart,b=to<yEnd?to:yEnd;
-      if(b>=a)total+=(Math.floor((b-a)/86400000)+1)*VACATION_DAILY_ACCRUAL;
+      if(b>=a)total+=(Math.floor((b-a)/86400000)+1)*vacationDailyAccrual(y);
     }
     return total;
   };
   const accrued=accrualStart&&accrualStart<=today?accruedFromDate(localDate(accrualStart),localDate(today)):0;
   const hasIgnoredSnapshot=hasManualBase&&Array.isArray(data.settings.vacationIgnoredObjects)&&data.settings.vacationIgnoredObjects.length>0;
   const usedAtBase=hasManualBase?(parseFloat(data.settings.vacationUsedAtBase)||0):0;
-  const usedAfterBase=hasIgnoredSnapshot?countVacationObjects({ignoreSaved:true}):Math.max(0,countVacationObjects()-usedAtBase);
+  const usedAfterBase=hasIgnoredSnapshot?countVacationEntries({ignoreSaved:true}):Math.max(0,countVacationEntries()-usedAtBase);
   return base+accrued-usedAfterBase;
 }
 // #endregion Vacation
@@ -1717,12 +1737,13 @@ window.editBlocks=editBlocks;
 function renderEditBlocks(){
   window.editBlocks=editBlocks;
   renderBlocksTo(editBlocks,document.getElementById('edit-obj-blocks'),'edit','editRemoveBlock','editMult','editChange',updateEditTotalH);
-  updateEditTotalH();
+  updateEditTotalH();updateAddObjectButtons();
 }
 function editChange(){renderEditBlocks();}
 function editMult(i,v){editBlocks[i].mult=editBlocks[i].mult===v?null:v;renderEditBlocks();}
 function editRemoveBlock(i){editBlocks.splice(i,1);renderEditBlocks();}
 function addEditObjBlock(){
+  if(editBlocks.some(b=>isVacationObject(b.obj)))return;
   const prev=editBlocks[editBlocks.length-1];
   const pt=prev?.to||data.settings.end||'17:00';
   editBlocks.push({obj:'',from:pt,to:addHr(pt,1),mult:null});renderEditBlocks();
@@ -1741,6 +1762,7 @@ function saveEdit(){
     if(fe)fe.classList.add('err-field');if(te)te.classList.add('err-field');
     toast('⚠️ '+t('err_time_same'),true);return;
   }
+  if(editBlocks.some(b=>isVacationObject(b.obj)))editBlocks=editBlocks.filter(b=>isVacationObject(b.obj)).slice(0,1);
   const newObjs=editBlocks.map((b,i)=>({obj:b.obj.trim(),from:b.from,to:b.to,hours:parseFloat(calcH(b,i===0).toFixed(2)),mult:b.mult||null}));
   if(hasOverlap(date,newObjs,editId)){toast('⚠️ '+t('err_overlap'),true);return;}
   const idx=data.entries.findIndex(e=>e.id===editId);if(idx<0)return;
