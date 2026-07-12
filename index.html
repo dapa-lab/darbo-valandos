@@ -1379,7 +1379,7 @@ function renderBlocksTo(blocks,container,pfx,removeFn,multFn,changeFn,totalFn){
       </div>
       <div class="frow">
         <input type="text" id="${pfx}-obj-${i}" list="${pfx}-ol-${i}" value="${escH(displayObjectName(b.obj))}" placeholder="${t('add_obj_ph')}" onfocus="dlFocus(this)" onblur="dlBlur(this,true)"
-          oninput="${pfx}ObjectChanged(${i},this.value);this.classList.remove('err-field')">
+          oninput="${pfx}ObjectChanged(${i},this.value);this.classList.remove('err-field')" onchange="${pfx}ObjectChanged(${i},this.value);this.classList.remove('err-field')">
         <datalist id="${pfx}-ol-${i}">${objs.map(o=>`<option value="${escH(o)}">`).join('')}</datalist>
       </div>
       <div class="time-row">
@@ -1467,7 +1467,6 @@ function countVacationEntries(options={}){
 function enforceVacationExclusivity(blocks,i){
   if(!isVacationObject(blocks[i]?.obj))return true;
   if(blocks.length===1)return true;
-  if(!confirm(t('confirm_vacation_only'))){blocks[i].obj='';return false;}
   blocks.splice(0,blocks.length,{...blocks[i],obj:getVacationObjectLabel()});
   return true;
 }
