@@ -1550,7 +1550,7 @@ function renderEntries(){
     if(fObj&&!matchingDates.has(b.date))return s;
     return s+(parseFloat(b.amount)||0);
   },0);
-  const remain=isFiltered?earned:earned+bon-paid-exp;
+  const remain=isFiltered?earned+filteredBonus:earned+bon-paid-exp;
   document.getElementById('s-days').textContent=filtered.length;
   document.getElementById('s-hours').textContent=totalH.toFixed(1);
   const vacEl=document.getElementById('s-vacation');
