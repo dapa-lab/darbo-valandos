@@ -1977,7 +1977,8 @@ function sendBugReport(){
 
 // #region Storage
 function exportData(){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.json';a.click();}
-function exportCSV(){const rows=[['Data','Objektas','Nuo','Iki','Valandos','Mult','Vairavau','Komentaras']];data.entries.forEach(e=>(e.objs||[]).forEach(o=>rows.push([e.date,o.obj,o.from||'',o.to||'',o.hours,o.mult||'',e.drive?'Taip':'',e.comment||''])));const b=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.csv';a.click();}
+function csvField(v){const s=v==null?'':String(v);return /[",;\n\r]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}
+function exportCSV(){const rows=[['Data','Objektas','Nuo','Iki','Valandos','Mult','Vairavau','Komentaras']];data.entries.forEach(e=>(e.objs||[]).forEach(o=>rows.push([e.date,o.obj,o.from||'',o.to||'',o.hours,o.mult||'',e.drive?'Taip':'',e.comment||''])));const b=new Blob(['\uFEFF'+rows.map(r=>r.map(csvField).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.csv';a.click();}
 function importData(input){const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{data=JSON.parse(e.target.result);save();applyTheme();loadSettings();renderEntries();renderFinances();applyI18n();toast(t('saved_imported'));}catch{toast(t('err_import'),true);}};r.readAsText(file);}
 </script>
 </div>
