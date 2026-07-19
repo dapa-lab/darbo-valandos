@@ -147,7 +147,8 @@ textarea{resize:vertical;min-height:52px;}
 .entry-actions button{border:none;cursor:pointer;font-size:13px;font-weight:700;flex:1;display:flex;align-items:center;justify-content:center;gap:4px;}
 .act-edit{background:var(--accent);color:#fff;}
 .act-del{background:var(--danger);color:#fff;}
-.entry{background:var(--surface2);border-radius:8px;padding:12px 14px;border-left:4px solid var(--success);transition:transform .25s ease;touch-action:pan-y;user-select:none;position:relative;z-index:1;}
+.entry{background:var(--surface2);border-radius:8px;padding:12px 14px;border-left:4px solid var(--success);transition:transform .22s cubic-bezier(.22,.61,.36,1);touch-action:pan-y;user-select:none;position:relative;z-index:1;}
+.entry.dragging{transition:none;}
 .entry.week-a{border-left-color:#4f8ef7;}
 .entry.week-b{border-left-color:#22c55e;}
 .entry.weekend{border-left-color:#ef4444;}
@@ -371,6 +372,7 @@ textarea{resize:vertical;min-height:52px;}
 .mode-btn.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.16);}
 body{background:var(--bg);transition:background-color .22s ease,color .22s ease;}
 .card,.stat,.obj-block,.entry,.modal,.confirm-box,.user-bar,nav{box-shadow:0 6px 18px rgba(0,0,0,.12);transition:background-color .18s ease,border-color .18s ease,color .18s ease;}
+.entry{transition:transform .22s cubic-bezier(.22,.61,.36,1),background-color .18s ease,border-color .18s ease,color .18s ease;}
 .btn,.lang-btn,.icon-act-btn,.cal-day,.entry,.mode-btn{will-change:transform;}
 .btn:hover,.lang-btn:hover,.cal-day:hover{transform:translateY(-1px);}
 .btn:active,.lang-btn:active,.mode-btn:active{transform:translateY(1px) scale(.99);}
@@ -1573,10 +1575,10 @@ function renderEntries(){
     const driveRow=e.drive?`<div class="entry-drive">🚗 ${t('add_drive').replace('🚗 ','')}${e.comment?' · '+escH(e.comment):''}</div>`:(e.comment?`<div style="font-size:12px;color:var(--text2);margin-top:4px">${escH(e.comment)}</div>`:'');
     return`<div class="entry-wrap" id="ew-${e.id}">
       <div class="entry-actions" id="ea-${e.id}">
-        <button class="act-edit" onclick="openEdit(${e.id})">${t('edit_btn')}</button>
-        <button class="act-del" onclick="deleteEntry(${e.id})">${t('del_btn')}</button>
+        <button class="act-edit" onclick="if(canTapEntryAction(${e.id}))openEdit(${e.id})">${t('edit_btn')}</button>
+        <button class="act-del" onclick="if(canTapEntryAction(${e.id}))deleteEntry(${e.id})">${t('del_btn')}</button>
       </div>
-      <div class="entry ${cc}" id="en-${e.id}" ontouchstart="tsStart(event,${e.id})" ontouchmove="tsMove(event,${e.id})" ontouchend="tsEnd(event,${e.id})">
+      <div class="entry ${cc}" id="en-${e.id}" ontouchstart="tsStart(event,${e.id})" ontouchmove="tsMove(event,${e.id})" ontouchend="tsEnd(event,${e.id})" ontouchcancel="tsEnd(event,${e.id})">
         <div class="entry-hdr">
           <div class="entry-date">${formatDate(e.date)}</div>
           <div style="display:flex;align-items:center;gap:8px">
@@ -1694,17 +1696,34 @@ function showCalDay(ds){
 // #endregion Calendar
 
 // #region UI Gestures
-function tsStart(e,id){swipeX[id]=e.touches[0].clientX;}
-function tsMove(e,id){if(e.touches[0].clientX-swipeX[id]<-20)e.preventDefault();}
-function tsEnd(e,id){
-  const diff=e.changedTouches[0].clientX-swipeX[id];
-  const en=document.getElementById('en-'+id),ea=document.getElementById('ea-'+id);
-  if(diff<-50){
-    document.querySelectorAll('.entry.swiped').forEach(el=>{const oid=el.id.replace('en-','');if(oid!==String(id))closeSwipe(oid);});
-    en.classList.add('swiped');ea.style.display='flex';
-  }else if(diff>20){closeSwipe(id);}
+function tsStart(e,id){
+  const touch=e.touches[0],en=document.getElementById('en-'+id),ea=document.getElementById('ea-'+id);
+  swipeX[id]={x:touch.clientX,y:touch.clientY,offset:en.classList.contains('swiped')?-ea.offsetWidth:0,horizontal:false,dragged:false};
 }
-function closeSwipe(id){document.getElementById('en-'+id)?.classList.remove('swiped');const ea=document.getElementById('ea-'+id);if(ea)ea.style.display='none';}
+function tsMove(e,id){
+  const s=swipeX[id];if(!s)return;
+  const touch=e.touches[0],dx=touch.clientX-s.x,dy=touch.clientY-s.y;
+  if(!s.horizontal){
+    if(Math.abs(dx)<6&&Math.abs(dy)<6)return;
+    if(Math.abs(dx)<=Math.abs(dy)){delete swipeX[id];return;}
+    s.horizontal=true;
+    document.querySelectorAll('.entry.swiped').forEach(el=>{const oid=el.id.replace('en-','');if(oid!==String(id))closeSwipe(oid);});
+  }
+  const en=document.getElementById('en-'+id),ea=document.getElementById('ea-'+id);
+  ea.style.display='flex';
+  const offset=Math.max(-ea.offsetWidth,Math.min(0,s.offset+dx));
+  en.classList.add('dragging');en.style.transform=`translateX(${offset}px)`;s.dragged=true;
+  e.preventDefault();
+}
+function tsEnd(e,id){
+  const s=swipeX[id];delete swipeX[id];if(!s||!s.horizontal)return;
+  const en=document.getElementById('en-'+id),ea=document.getElementById('ea-'+id),open=parseFloat(en.style.transform.match(/-?[\d.]+/)?.[0]||s.offset)<-Math.min(50,ea.offsetWidth*.35);
+  en.classList.remove('dragging');en.style.transform='';en.classList.toggle('swiped',open);
+  if(!open)setTimeout(()=>{if(!en.classList.contains('swiped'))ea.style.display='none';},220);
+  s.blockActions=true;setTimeout(()=>{s.blockActions=false;},250);swipeX[id]=s;
+}
+function canTapEntryAction(id){return !swipeX[id]?.blockActions;}
+function closeSwipe(id){const en=document.getElementById('en-'+id),ea=document.getElementById('ea-'+id);if(!en)return;en.classList.remove('swiped');setTimeout(()=>{if(!en.classList.contains('swiped'))ea.style.display='none';},220);}
 
 document.addEventListener('click',function(e){
   if(!e.target.closest('.entry-wrap'))
