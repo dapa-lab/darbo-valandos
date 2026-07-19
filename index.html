@@ -94,7 +94,7 @@ textarea{resize:vertical;min-height:52px;}
 .btn-neutral:hover{background:var(--surface2)!important;color:var(--text)!important;border-color:var(--accent)!important;}
 .btn-add-obj{width:100%;margin-top:6px;background:var(--surface3,var(--bg));border:1px dashed var(--border);color:var(--text2);border-radius:7px;padding:8px;cursor:pointer;font-size:13px;transition:.2s;}
 .btn-add-obj:hover{border-color:var(--accent);color:var(--accent);}
-.obj-block{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;}
+.obj-block{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;scroll-margin-top:60px;}
 .obj-block-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .obj-block-hdr span{color:var(--text2);font-size:12px;font-weight:600;}
 .time-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
@@ -171,6 +171,7 @@ textarea{resize:vertical;min-height:52px;}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:16px;}
 .modal-bg.show{display:flex;}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;}
+.modal .obj-block{scroll-margin-top:12px;}
 .modal-title{font-size:15px;font-weight:700;margin-bottom:14px;}
 .confirm-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;align-items:center;justify-content:center;padding:20px;}
 .confirm-bg.show{display:flex;}
@@ -1433,12 +1434,12 @@ function focusNewObjectBlock(pfx,i){
   requestAnimationFrame(()=>{
     const block=document.getElementById(`${pfx}-ob-${i}`),input=document.getElementById(`${pfx}-obj-${i}`);
     if(!block||!input)return;
+    const modal=block.closest('.modal');
+    if(modal){
+      const blockTop=block.getBoundingClientRect().top-modal.getBoundingClientRect().top;
+      modal.scrollTo({top:modal.scrollTop+blockTop-12,behavior:'smooth'});
+    }else block.scrollIntoView({behavior:'smooth',block:'start'});
     input.focus({preventScroll:true});
-    const modal=block.closest('.modal'),bounds=modal?.getBoundingClientRect()||{top:0},rect=block.getBoundingClientRect();
-    const nav=document.querySelector('nav'),navRect=nav?.getBoundingClientRect(),bottom=modal?bounds.bottom-16:navRect&&navRect.top>window.innerHeight/2?navRect.top-16:window.innerHeight-16;
-    if(rect.top>=bounds.top&&rect.bottom<=bottom)return;
-    const top=rect.bottom-bottom;
-    (modal||window).scrollBy({top,behavior:'smooth'});
   });
 }
 
