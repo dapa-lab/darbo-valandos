@@ -1351,7 +1351,7 @@ function addObjBlock(){
   const prev=objBlocks[objBlocks.length-1];
   const pt=prev.to||data.settings.end||'17:00';
   objBlocks.push({obj:'',from:pt,to:addHr(pt,1),mult:null});
-  renderObjBlocks();updateTotalH();
+  renderObjBlocks();updateTotalH();focusNewObjectBlock('add',objBlocks.length-1);
 }
 function removeObjBlock(i){objBlocks.splice(i,1);renderObjBlocks();updateTotalH();}
 function updateTotalH(){
@@ -1428,6 +1428,18 @@ function renderBlocksTo(blocks,container,pfx,removeFn,multFn,changeFn,totalFn){
       <div class="hours-disp" id="${pfx}-hrs-${i}">${h.toFixed(2)} ${t('week_val')}</div>
     </div>`;
   }).join('');
+}
+function focusNewObjectBlock(pfx,i){
+  requestAnimationFrame(()=>{
+    const block=document.getElementById(`${pfx}-ob-${i}`),input=document.getElementById(`${pfx}-obj-${i}`);
+    if(!block||!input)return;
+    input.focus({preventScroll:true});
+    const modal=block.closest('.modal'),bounds=modal?.getBoundingClientRect()||{top:0},rect=block.getBoundingClientRect();
+    const nav=document.querySelector('nav'),navRect=nav?.getBoundingClientRect(),bottom=modal?bounds.bottom-16:navRect&&navRect.top>window.innerHeight/2?navRect.top-16:window.innerHeight-16;
+    if(rect.top>=bounds.top&&rect.bottom<=bottom)return;
+    const top=rect.bottom-bottom;
+    (modal||window).scrollBy({top,behavior:'smooth'});
+  });
 }
 
 window.addBlocks=objBlocks;
@@ -1795,7 +1807,7 @@ function addEditObjBlock(){
   if(editBlocks.some(b=>isVacationObject(b.obj)))return;
   const prev=editBlocks[editBlocks.length-1];
   const pt=prev?.to||data.settings.end||'17:00';
-  editBlocks.push({obj:'',from:pt,to:addHr(pt,1),mult:null});renderEditBlocks();
+  editBlocks.push({obj:'',from:pt,to:addHr(pt,1),mult:null});renderEditBlocks();focusNewObjectBlock('edit',editBlocks.length-1);
 }
 function updateEditTotalH(){
   const tot=editBlocks.reduce((s,b,i)=>s+calcH(b,i===0),0);
