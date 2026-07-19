@@ -1437,8 +1437,15 @@ function focusNewObjectBlock(pfx,i){
     const modal=block.closest('.modal');
     if(modal){
       const blockTop=block.getBoundingClientRect().top-modal.getBoundingClientRect().top;
-      modal.scrollTo({top:modal.scrollTop+blockTop-12,behavior:'smooth'});
-    }else block.scrollIntoView({behavior:'smooth',block:'start'});
+      modal.scrollTo({top:modal.scrollTop+blockTop-10,behavior:'smooth'});
+    }else{
+      const exactBlockTop=block.getBoundingClientRect().top+window.scrollY;
+      const topOffset=[...document.querySelectorAll('nav,.user-bar')].reduce((offset,el)=>{
+        const rect=el.getBoundingClientRect();
+        return rect.top<=offset&&rect.bottom>offset?rect.bottom:offset;
+      },0)+10;
+      window.scrollTo({top:exactBlockTop-topOffset,behavior:'smooth'});
+    }
     input.focus({preventScroll:true});
   });
 }
