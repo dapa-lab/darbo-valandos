@@ -1352,7 +1352,23 @@ function addObjBlock(){
   const prev=objBlocks[objBlocks.length-1];
   const pt=prev.to||data.settings.end||'17:00';
   objBlocks.push({obj:'',from:pt,to:addHr(pt,1),mult:null});
-  renderObjBlocks();updateTotalH();focusNewObjectBlock('add',objBlocks.length-1);
+  renderObjBlocks();updateTotalH();scrollNewAddObjectBlock(objBlocks.length-1);
+}
+function scrollNewAddObjectBlock(i){
+  requestAnimationFrame(()=>{
+    const newBlock=document.getElementById(`add-ob-${i}`);
+    if(!newBlock)return;
+
+    const userBar=document.getElementById('user-bar-cloud');
+    const userBarRect=userBar?.getBoundingClientRect();
+    const isUserBarVisible=userBar?.offsetParent!==null&&userBarRect&&userBarRect.bottom>0&&userBarRect.top<window.innerHeight;
+    const visibleUserBarBottom=isUserBarVisible?userBarRect.bottom:0;
+    const blockTop=newBlock.getBoundingClientRect().top;
+    const targetTop=visibleUserBarBottom;
+    const delta=blockTop-targetTop;
+
+    window.scrollTo({top:window.scrollY+delta,behavior:'smooth'});
+  });
 }
 function removeObjBlock(i){objBlocks.splice(i,1);renderObjBlocks();updateTotalH();}
 function updateTotalH(){
