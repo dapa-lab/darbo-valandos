@@ -1435,18 +1435,40 @@ function focusNewObjectBlock(pfx,i){
     const block=document.getElementById(`${pfx}-ob-${i}`),input=document.getElementById(`${pfx}-obj-${i}`);
     if(!block||!input)return;
     const modal=block.closest('.modal');
-    if(modal){
-      const blockTop=block.getBoundingClientRect().top-modal.getBoundingClientRect().top;
-      modal.scrollTo({top:modal.scrollTop+blockTop-10,behavior:'smooth'});
-    }else{
-      const exactBlockTop=block.getBoundingClientRect().top+window.scrollY;
-      const topOffset=[...document.querySelectorAll('nav,.user-bar')].reduce((offset,el)=>{
-        const rect=el.getBoundingClientRect();
-        return rect.top<=offset&&rect.bottom>offset?rect.bottom:offset;
-      },0)+10;
-      window.scrollTo({top:exactBlockTop-topOffset,behavior:'smooth'});
-    }
     input.focus({preventScroll:true});
+    const viewport=window.visualViewport;
+    let lastSize='',stableFrames=0,frames=0,resizeSeen=!viewport;
+    const onResize=()=>{resizeSeen=true;stableFrames=0;};
+    viewport?.addEventListener('resize',onResize,{once:true});
+    const correctScroll=()=>{
+      viewport?.removeEventListener('resize',onResize);
+      const vv=window.visualViewport;
+      const viewportTop=vv?.offsetTop||0;
+      const viewportBottom=viewportTop+(vv?.height||window.innerHeight);
+      const blockTop=block.getBoundingClientRect().top;
+      let visibleTopOffset=viewportTop;
+      if(modal)visibleTopOffset=Math.max(visibleTopOffset,modal.getBoundingClientRect().top);
+      else{
+        const userBar=document.getElementById('user-bar-cloud');
+        const barRect=userBar?.getBoundingClientRect();
+        if(userBar?.offsetParent!==null&&barRect&&barRect.bottom>viewportTop&&barRect.top<viewportBottom){
+          visibleTopOffset=Math.max(visibleTopOffset,barRect.top+barRect.height);
+        }
+      }
+      const delta=blockTop-(visibleTopOffset+8);
+      if(modal)modal.scrollTop+=delta;
+      else window.scrollTo(0,window.scrollY+delta);
+    };
+    const waitForViewport=()=>{
+      const vv=window.visualViewport;
+      const size=vv?`${vv.offsetTop}:${vv.height}`:'';
+      stableFrames=size===lastSize?stableFrames+1:0;
+      lastSize=size;
+      frames++;
+      if(stableFrames>=3&&(resizeSeen||frames>=12))correctScroll();
+      else requestAnimationFrame(waitForViewport);
+    };
+    requestAnimationFrame(waitForViewport);
   });
 }
 
