@@ -85,6 +85,8 @@ textarea{resize:vertical;min-height:52px;}
 .btn-primary{background:var(--accent);color:#fff;}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text2);}
 .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.data-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.data-actions .btn{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;}
 .btn-sm{font-size:12px;padding:5px 10px;}
 .btn-dout{background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:7px;padding:4px 9px;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;}
 .btn-dout:hover{background:var(--danger);color:#fff;}
@@ -375,7 +377,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
 .page.active{animation:pageIn .18s ease both;}@keyframes pageIn{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:none}}
 .entry-wrap{animation:itemIn .18s ease both;}@keyframes itemIn{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
-@media (max-width:520px){.page{padding:12px 10px 82px}.card{padding:14px;border-radius:16px}.summary-grid{grid-template-columns:1fr 1fr;gap:8px}.stat{padding:11px;border-radius:14px}.stat-val{font-size:18px}.pay-row,.filter-dates,.filter-obj-row{gap:6px}.time-row{grid-template-columns:1fr;gap:10px}nav{position:fixed;left:10px;right:10px;bottom:10px;top:auto;border:1px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.22)}nav button{padding:9px 2px 8px}.user-bar{position:sticky;top:0;z-index:80}.login-box{padding:30px 22px}.cal-day{height:42px}.entry{padding:12px}.entry-actions{width:154px}.entry.swiped{transform:translateX(-154px)}}
+@media (max-width:520px){.page{padding:12px 10px 82px}.card{padding:14px;border-radius:16px}.summary-grid{grid-template-columns:1fr 1fr;gap:8px}.stat{padding:11px;border-radius:14px}.stat-val{font-size:18px}.pay-row,.filter-dates,.filter-obj-row{gap:6px}.time-row,.data-actions{grid-template-columns:1fr;gap:10px}.data-actions .btn{min-height:44px}nav{position:fixed;left:10px;right:10px;bottom:10px;top:auto;border:1px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.22)}nav button{padding:9px 2px 8px}.user-bar{position:sticky;top:0;z-index:80}.login-box{padding:30px 22px}.cal-day{height:42px}.entry{padding:12px}.entry-actions{width:154px}.entry.swiped{transform:translateX(-154px)}}
 /* #endregion Performance + Motion */
 </style>
 </head>
@@ -562,7 +564,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
   </div>
   <div class="card">
     <div class="card-title" data-i="set_data">Duomenys</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <div class="data-actions">
       <button class="btn btn-ghost" onclick="createBackup()" data-i="backup_create">💾 Create backup</button>
       <button class="btn btn-ghost" onclick="document.getElementById('restore-backup-file').click()" data-i="backup_restore">↩️ Restore backup</button>
       <input class="app-hidden" id="restore-backup-file" type="file" accept="application/json,.json" onchange="restoreBackup(this)">
