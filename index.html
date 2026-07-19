@@ -221,11 +221,14 @@ textarea{resize:vertical;min-height:52px;}
 .vt-btn{flex:1;background:none;border:none;color:var(--text2);font-size:13px;font-weight:600;padding:8px;border-radius:7px;cursor:pointer;transition:.2s;}
 .vt-btn.active{background:var(--accent);color:#fff;}
 
-.cal-legend{display:flex;gap:16px;margin-bottom:12px;font-size:12px;color:var(--text2);}
-.cal-legend-item{display:flex;align-items:center;gap:6px;}
-.cal-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
+.cal-legend{display:flex;flex-wrap:wrap;gap:8px 12px;margin-bottom:12px;font-size:12px;color:var(--text2);}
+.cal-legend-item{display:flex;align-items:center;gap:6px;min-width:0;}
+.cal-legend-item span{overflow-wrap:anywhere;}
+.cal-dot{width:11px;height:11px;border-radius:3px;flex:0 0 11px;}
 .cal-filled{background:var(--success);}
+.cal-vacation{background:var(--warning);}
 .cal-today-dot{background:var(--accent);}
+.cal-weekend{background:var(--danger);}
 .cal-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:6px;}
 .cal-weekdays div{text-align:center;font-size:11px;color:var(--text2);font-weight:600;padding:4px 0;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;width:100%;}
@@ -488,7 +491,9 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
   <div id="calendar-view" style="display:none">
     <div class="cal-legend">
       <div class="cal-legend-item"><div class="cal-dot cal-filled"></div><span data-i="cal_filled">Užpildyta</span></div>
+      <div class="cal-legend-item"><div class="cal-dot cal-vacation"></div><span data-i="cal_vacation">Atostogos</span></div>
       <div class="cal-legend-item"><div class="cal-dot cal-today-dot"></div><span data-i="cal_today">Šiandien</span></div>
+      <div class="cal-legend-item"><div class="cal-dot cal-weekend"></div><span data-i="cal_weekend_holiday">Savaitgalis / šventinė diena</span></div>
     </div>
     <div class="cal-weekdays" id="cal-weekdays"></div>
     <div class="cal-grid" id="cal-grid"></div>
@@ -695,7 +700,7 @@ const LANGS={
     saved_entry:'✓ Įrašas pridėtas',saved_edit:'✓ Įrašas atnaujintas',saved_deleted:'✓ Ištrinta',
     saved_settings:'✓ Nustatymai išsaugoti',err_vacation_balance:'Įveskite teisingą atostogų likutį',saved_imported:'✓ Importuota',err_import:'⚠️ Klaida importuojant',
     remove_obj:'✕ Pašalinti',week_val:'val.',locale:'lt-LT',
-    view_list:'📋 Sąrašas',view_calendar:'📅 Kalendorius',cal_filled:'Užpildyta',cal_today:'Šiandien',cal_holiday:'Šventinė diena',
+    view_list:'📋 Sąrašas',view_calendar:'📅 Kalendorius',cal_filled:'Užpildyta',cal_vacation:'Atostogos',cal_today:'Šiandien',cal_weekend_holiday:'Savaitgalis / šventinė diena',cal_holiday:'Šventinė diena',
     local_mode_label:'💾 Duomenys saugomi šiame įrenginyje',local_mode_title:'Vietinis saugojimas',enable_cloud_btn:'☁️ Įjungti debesį',logout_btn:'Atsijungti',
     cloud_confirm_title:'Įjungti debesies saugojimą?',cloud_confirm_desc:'Prisijungę su Google, jūsų duomenys bus saugomi debesyje ir pasiekiami iš kitų įrenginių.',
   },
@@ -727,7 +732,7 @@ const LANGS={
     saved_entry:'✓ Entry added',saved_edit:'✓ Entry updated',saved_deleted:'✓ Deleted',
     saved_settings:'✓ Settings saved',err_vacation_balance:'Enter a valid vacation balance',saved_imported:'✓ Imported',err_import:'⚠️ Import error',
     remove_obj:'✕ Remove',week_val:'hrs.',locale:'en-GB',
-    view_list:'📋 List',view_calendar:'📅 Calendar',cal_filled:'Filled',cal_today:'Today',cal_holiday:'Public holiday',
+    view_list:'📋 List',view_calendar:'📅 Calendar',cal_filled:'Filled',cal_vacation:'Vacation',cal_today:'Today',cal_weekend_holiday:'Weekend / public holiday',cal_holiday:'Public holiday',
     local_mode_label:'💾 Data stored on this device',local_mode_title:'Local storage',enable_cloud_btn:'☁️ Enable cloud',logout_btn:'Sign out',
     cloud_confirm_title:'Enable cloud sync?',cloud_confirm_desc:'After signing in with Google, your data will be stored in the cloud and accessible from other devices.',
   },
@@ -759,7 +764,7 @@ const LANGS={
     saved_entry:'✓ Запись добавлена',saved_edit:'✓ Запись обновлена',saved_deleted:'✓ Удалено',
     saved_settings:'✓ Настройки сохранены',err_vacation_balance:'Введите корректный остаток отпуска',saved_imported:'✓ Импортировано',err_import:'⚠️ Ошибка импорта',
     remove_obj:'✕ Убрать',week_val:'ч.',locale:'ru-RU',
-    view_list:'📋 Список',view_calendar:'📅 Календарь',cal_filled:'Заполнено',cal_today:'Сегодня',cal_holiday:'Праздничный день',
+    view_list:'📋 Список',view_calendar:'📅 Календарь',cal_filled:'Заполнено',cal_vacation:'Отпуск',cal_today:'Сегодня',cal_weekend_holiday:'Выходной / праздничный день',cal_holiday:'Праздничный день',
     local_mode_label:'💾 Данные хранятся на этом устройстве',local_mode_title:'Локальное хранение',enable_cloud_btn:'☁️ Включить облако',logout_btn:'Выйти',
     cloud_confirm_title:'Включить облачное хранение?',cloud_confirm_desc:'После входа через Google ваши данные будут храниться в облаке и доступны с других устройств.',
   }
