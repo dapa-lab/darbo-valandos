@@ -490,10 +490,10 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
   </div>
   <div id="calendar-view" style="display:none">
     <div class="cal-legend">
+      <div class="cal-legend-item"><div class="cal-dot cal-today-dot"></div><span data-i="cal_today">Šiandien</span></div>
       <div class="cal-legend-item"><div class="cal-dot cal-filled"></div><span data-i="cal_filled">Užpildyta</span></div>
       <div class="cal-legend-item"><div class="cal-dot cal-vacation"></div><span data-i="cal_vacation">Atostogos</span></div>
-      <div class="cal-legend-item"><div class="cal-dot cal-today-dot"></div><span data-i="cal_today">Šiandien</span></div>
-      <div class="cal-legend-item"><div class="cal-dot cal-weekend"></div><span data-i="cal_weekend_holiday">Savaitgalis / šventinė diena</span></div>
+      <div class="cal-legend-item"><div class="cal-dot cal-weekend"></div><span data-i="cal_weekend_holiday">Savaitgalis / šventinė d.</span></div>
     </div>
     <div class="cal-weekdays" id="cal-weekdays"></div>
     <div class="cal-grid" id="cal-grid"></div>
@@ -700,7 +700,7 @@ const LANGS={
     saved_entry:'✓ Įrašas pridėtas',saved_edit:'✓ Įrašas atnaujintas',saved_deleted:'✓ Ištrinta',
     saved_settings:'✓ Nustatymai išsaugoti',err_vacation_balance:'Įveskite teisingą atostogų likutį',saved_imported:'✓ Importuota',err_import:'⚠️ Klaida importuojant',
     remove_obj:'✕ Pašalinti',week_val:'val.',locale:'lt-LT',
-    view_list:'📋 Sąrašas',view_calendar:'📅 Kalendorius',cal_filled:'Užpildyta',cal_vacation:'Atostogos',cal_today:'Šiandien',cal_weekend_holiday:'Savaitgalis / šventinė diena',cal_holiday:'Šventinė diena',
+    view_list:'📋 Sąrašas',view_calendar:'📅 Kalendorius',cal_filled:'Užpildyta',cal_vacation:'Atostogos',cal_today:'Šiandien',cal_weekend_holiday:'Savaitgalis / šventinė d.',cal_holiday:'Šventinė diena',
     local_mode_label:'💾 Duomenys saugomi šiame įrenginyje',local_mode_title:'Vietinis saugojimas',enable_cloud_btn:'☁️ Įjungti debesį',logout_btn:'Atsijungti',
     cloud_confirm_title:'Įjungti debesies saugojimą?',cloud_confirm_desc:'Prisijungę su Google, jūsų duomenys bus saugomi debesyje ir pasiekiami iš kitų įrenginių.',
   },
