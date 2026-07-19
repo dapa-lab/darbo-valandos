@@ -1007,7 +1007,7 @@ function initAppUI(){
   applyTheme();
   const lang=data.settings.lang||'lt';
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.id==='lang-'+lang));
-  document.getElementById('inp-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('inp-date').value=dateToStr(new Date());
   loadSettings();initObjBlocks();updateRangeLabel();renderRangePicker();renderEntries();renderFinances();updateMonthLabel();updateMonthLabelF();
   applyI18n();
   const savedView=localStorage.getItem('dv-entries-view')||'list';
@@ -1125,7 +1125,8 @@ function loadSettings(){
 function saveSettings(){
   resetVacationEditUi();
   data.settings.rate=parseFloat(document.getElementById('set-rate').value)||0;
-  data.settings.lunch=parseInt(document.getElementById('set-lunch').value)||30;
+  const lunch=parseInt(document.getElementById('set-lunch').value);
+  data.settings.lunch=Number.isFinite(lunch)?lunch:30;
   data.settings.start=t24GetValue('set-start')||'07:00';
   data.settings.end=t24GetValue('set-end')||'17:00';
   save();toast(t('saved_settings'));renderEntries();renderFinances();
@@ -1165,12 +1166,12 @@ function saveVacationSetting(presetValue){
     return;
   }
   data.settings.vacationBase=val;
-  data.settings.vacationBaseDate=new Date().toISOString().split('T')[0];
+  data.settings.vacationBaseDate=dateToStr(new Date());
   data.settings.vacationUsedAtBase=countVacationEntries();
   data.settings.vacationIgnoredObjects=getVacationObjectKeys();
   if(inp)inp.value=formatVacationSetting(data.settings.vacationBase);
   resetVacationEditUi();
-  save();toast(t('saved_settings'));renderEntries();renderCalendar();updateSummary();
+  save();toast(t('saved_settings'));renderEntries();renderCalendar();
 }
 
 // #endregion Settings
@@ -1299,6 +1300,25 @@ function calcH(b,isFirst){
   return Math.max(0,h);
 }
 
+function validateTimeBlocks(blocks,pfx){
+  let hasSameTime=false,hasNoTime=false;
+  blocks.forEach((b,i)=>{
+    const fe=document.getElementById(`${pfx}-from-${i}-wrap`),te=document.getElementById(`${pfx}-to-${i}-wrap`);
+    const missing=!b.from||!b.to;
+    if(missing||b.from===b.to){
+      if(!b.from||(!missing&&b.from===b.to))fe?.classList.add('err-field');
+      if(!b.to||(!missing&&b.from===b.to))te?.classList.add('err-field');
+      hasSameTime=hasSameTime||(!missing&&b.from===b.to);
+      hasNoTime=hasNoTime||missing;
+    }else if(!isVacationObject(b.obj)&&calcH(b,i===0)<=0){
+      fe?.classList.add('err-field');te?.classList.add('err-field');hasNoTime=true;
+    }
+  });
+  if(hasSameTime){toast('⚠️ '+t('err_time_same'),true);return false;}
+  if(hasNoTime){toast('⚠️ '+t('err_no_time'),true);return false;}
+  return true;
+}
+
 function hasOverlap(date,newObjs,excludeId){
   for(let i=0;i<newObjs.length;i++)for(let j=i+1;j<newObjs.length;j++){
     const a=newObjs[i],b=newObjs[j];
@@ -1416,14 +1436,7 @@ function addEntry(){
   const date=document.getElementById('inp-date').value;
   if(!date){showErrField('inp-date');toast('⚠️ '+t('err_date'),true);return;}
   if(objBlocks.some((b,i)=>{const el=document.getElementById('add-obj-'+i);if(!b.obj.trim()){if(el)el.classList.add('err-field');return true;}return false;})){toast('⚠️ '+t('err_obj_name'),true);return;}
-  let timeSameIdx=-1;
-  objBlocks.forEach((b,i)=>{if(b.from===b.to)timeSameIdx=i;});
-  if(timeSameIdx>=0){
-    const fe=document.getElementById('add-from-'+timeSameIdx+'-wrap'),te=document.getElementById('add-to-'+timeSameIdx+'-wrap');
-    if(fe)fe.classList.add('err-field');if(te)te.classList.add('err-field');
-    toast('⚠️ '+t('err_time_same'),true);return;
-  }
-  if(!objBlocks.some((b,i)=>calcH(b,i===0)>0)){toast('⚠️ '+t('err_no_time'),true);return;}
+  if(!validateTimeBlocks(objBlocks,'add'))return;
   if(objBlocks.some(b=>isVacationObject(b.obj)))objBlocks=objBlocks.filter(b=>isVacationObject(b.obj)).slice(0,1);
   const newObjs=objBlocks.map((b,i)=>({obj:b.obj.trim(),from:b.from,to:b.to,hours:parseFloat(calcH(b,i===0).toFixed(2)),mult:b.mult||null}));
   const newIsVacation=newObjs.some(o=>isVacationObject(o.obj));
@@ -1641,7 +1654,7 @@ function renderCalendar(){
   const firstDay=new Date(curYear,curMonth,1);
   let startOffset=firstDay.getDay()-1; if(startOffset<0)startOffset=6;
   const daysInMonth=new Date(curYear,curMonth+1,0).getDate();
-  const todayStr=new Date().toISOString().split('T')[0];
+  const todayStr=dateToStr(new Date());
   const holidays=getLtHolidays(curYear);
 
   const dayMap={};
@@ -1787,12 +1800,7 @@ function saveEdit(){
   const date=document.getElementById('edit-date').value;
   if(!date){showErrField('edit-date');toast('⚠️ '+t('err_date'),true);return;}
   if(editBlocks.some((b,i)=>{const el=document.getElementById('edit-obj-'+i);if(!b.obj.trim()){if(el)el.classList.add('err-field');return true;}return false;})){toast('⚠️ '+t('err_obj_name'),true);return;}
-  let timeSameIdx=-1;editBlocks.forEach((b,i)=>{if(b.from===b.to)timeSameIdx=i;});
-  if(timeSameIdx>=0){
-    const fe=document.getElementById('edit-from-'+timeSameIdx+'-wrap'),te=document.getElementById('edit-to-'+timeSameIdx+'-wrap');
-    if(fe)fe.classList.add('err-field');if(te)te.classList.add('err-field');
-    toast('⚠️ '+t('err_time_same'),true);return;
-  }
+  if(!validateTimeBlocks(editBlocks,'edit'))return;
   if(editBlocks.some(b=>isVacationObject(b.obj)))editBlocks=editBlocks.filter(b=>isVacationObject(b.obj)).slice(0,1);
   const newObjs=editBlocks.map((b,i)=>({obj:b.obj.trim(),from:b.from,to:b.to,hours:parseFloat(calcH(b,i===0).toFixed(2)),mult:b.mult||null}));
   if(hasOverlap(date,newObjs,editId)){toast('⚠️ '+t('err_overlap'),true);return;}
