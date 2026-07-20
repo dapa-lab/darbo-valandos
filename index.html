@@ -94,7 +94,7 @@ textarea{resize:vertical;min-height:52px;}
 .btn-neutral:hover{background:var(--surface2)!important;color:var(--text)!important;border-color:var(--accent)!important;}
 .btn-add-obj{width:100%;margin-top:6px;background:var(--surface3,var(--bg));border:1px dashed var(--border);color:var(--text2);border-radius:7px;padding:8px;cursor:pointer;font-size:13px;transition:.2s;}
 .btn-add-obj:hover{border-color:var(--accent);color:var(--accent);}
-.obj-block{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;scroll-margin-top:60px;}
+.obj-block{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;}
 .obj-block-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .obj-block-hdr span{color:var(--text2);font-size:12px;font-weight:600;}
 .time-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
@@ -171,7 +171,6 @@ textarea{resize:vertical;min-height:52px;}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:16px;}
 .modal-bg.show{display:flex;}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;}
-.modal .obj-block{scroll-margin-top:12px;}
 .modal-title{font-size:15px;font-weight:700;margin-bottom:14px;}
 .confirm-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;align-items:center;justify-content:center;padding:20px;}
 .confirm-bg.show{display:flex;}
@@ -1360,28 +1359,55 @@ function scrollNewObjectBlock(pfx,i){
     const newBlock=document.getElementById(`${pfx}-ob-${i}`);
     const newInput=document.getElementById(`${pfx}-obj-${i}`);
     if(!newBlock)return;
-
     const modalScrollContainer=newBlock.closest('.modal');
-    const targetTop=modalScrollContainer
-      ?modalScrollContainer.getBoundingClientRect().top
-      :(()=>{
-        const userBar=document.getElementById('user-bar-cloud');
-        const userBarRect=userBar?.getBoundingClientRect();
-        return userBar?.offsetParent!==null&&userBarRect&&userBarRect.bottom>0&&userBarRect.top<window.innerHeight
-          ?userBarRect.bottom:0;
-      })();
-    const scrollContainer=modalScrollContainer||window;
-    const scrollBy=delta=>scrollContainer.scrollBy({top:delta,behavior:'smooth'});
-    const correctScroll=()=>{
-      const visibleTop=modalScrollContainer?modalScrollContainer.getBoundingClientRect().top:targetTop;
-      const remainingDelta=newBlock.getBoundingClientRect().top-visibleTop;
-      if(Math.abs(remainingDelta)>2)scrollContainer.scrollBy({top:remainingDelta});
-    };
-    const delta=newBlock.getBoundingClientRect().top-targetTop;
     newInput?.focus({preventScroll:true});
-    if(Math.abs(delta)<=2){correctScroll();return;}
-    scrollContainer.addEventListener('scrollend',correctScroll,{once:true});
-    scrollBy(delta);
+    const viewport=window.visualViewport;
+    let stableFrames=0,started=performance.now(),lastHeight,lastOffset;
+    const waitForStableViewport=()=>{
+      const height=viewport?viewport.height:window.innerHeight;
+      const offset=viewport?viewport.offsetTop:0;
+      stableFrames=height===lastHeight&&offset===lastOffset?stableFrames+1:0;
+      lastHeight=height;lastOffset=offset;
+      if(stableFrames<4&&performance.now()-started<800){requestAnimationFrame(waitForStableViewport);return;}
+
+      const animate=(from,to,setScroll,finish)=>{
+        const duration=250,start=performance.now(),distance=to-from;
+        const frame=now=>{
+          const progress=Math.min((now-start)/duration,1),eased=1-Math.pow(1-progress,3);
+          setScroll(from+distance*eased);
+          if(progress<1)requestAnimationFrame(frame);
+          else{setScroll(to);finish();}
+        };
+        requestAnimationFrame(frame);
+      };
+      if(modalScrollContainer){
+        const modalRect=modalScrollContainer.getBoundingClientRect();
+        const currentScrollTop=modalScrollContainer.scrollTop;
+        const targetScrollTop=Math.max(0,Math.min(modalScrollContainer.scrollHeight-modalScrollContainer.clientHeight,
+          currentScrollTop+newBlock.getBoundingClientRect().top-modalRect.top));
+        animate(currentScrollTop,targetScrollTop,value=>{modalScrollContainer.scrollTop=value;},()=>{
+          const correction=newBlock.getBoundingClientRect().top-modalScrollContainer.getBoundingClientRect().top;
+          if(Math.abs(correction)>2)modalScrollContainer.scrollTop+=correction;
+        });
+        return;
+      }
+
+      const visibleTop=viewport?viewport.offsetTop:0;
+      const userBar=document.getElementById('user-bar-cloud');
+      const userBarRect=userBar?.getBoundingClientRect();
+      const visibleBottom=visibleTop+(viewport?viewport.height:window.innerHeight);
+      const targetTop=userBar?.offsetParent!==null&&userBarRect&&userBarRect.bottom>visibleTop&&userBarRect.top<visibleBottom
+        ?userBarRect.bottom:visibleTop;
+      const currentScrollY=window.scrollY;
+      const delta=newBlock.getBoundingClientRect().top-targetTop;
+      const targetScrollY=Math.max(0,Math.min(document.documentElement.scrollHeight-window.innerHeight,
+        currentScrollY+delta));
+      animate(currentScrollY,targetScrollY,value=>window.scrollTo(0,value),()=>{
+        const correction=newBlock.getBoundingClientRect().top-targetTop;
+        if(Math.abs(correction)>2)window.scrollTo(0,window.scrollY+correction);
+      });
+    };
+    requestAnimationFrame(waitForStableViewport);
   });
 }
 function removeObjBlock(i){objBlocks.splice(i,1);renderObjBlocks();updateTotalH();}
