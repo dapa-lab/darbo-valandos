@@ -14,7 +14,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBdrIZKyFOCaUldUqxepcIg8LDc19CkNtM",
@@ -30,7 +30,7 @@
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
-  window.fb = { auth, db, doc, getDoc, setDoc, onSnapshot, signInWithPopup, provider, signOut };
+  window.fb = { auth, db, doc, getDoc, onSnapshot, runTransaction, signInWithPopup, provider, signOut };
 
   onAuthStateChanged(auth, (user) => {
     window.onFbAuthChange && window.onFbAuthChange(user);
@@ -264,7 +264,7 @@ textarea{resize:vertical;min-height:52px;}
 .user-bar img{width:24px;height:24px;border-radius:50%;}
 .user-bar .ub-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .user-bar button{background:none;border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;}.sync-status{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px;}.sync-status.syncing{color:var(--warning);}.sync-status.saved{color:var(--success);}.sync-status.failed,.sync-status.conflict{color:var(--danger);}
 .local-badge{position:absolute;top:6px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;z-index:95;cursor:pointer;}
 .local-badge-cloud{display:flex;align-items:center;justify-content:center;color:var(--text2);}
 .local-badge-slash{position:absolute;width:20px;height:2px;background:var(--danger);transform:rotate(-45deg);border-radius:2px;}
@@ -410,7 +410,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
 
 <div id="app-root" class="app-hidden">
 <div class="user-bar" id="user-bar-cloud" style="display:none">
-  <div class="sync-dot" id="sync-dot"></div>
+  <div class="sync-dot" id="sync-dot"></div><span class="sync-status" id="sync-status" aria-live="polite"></span>
   <img id="ub-photo" src="" alt="">
   <span class="ub-name" id="ub-name"></span>
   <button onclick="doLogout()" id="logout-btn" data-i="logout_btn">Atsijungti</button>
@@ -567,6 +567,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     </div>
     <div id="sync-cloud-block" style="display:none">
       <div class="s-desc" style="margin-bottom:10px" id="sync-cloud-desc"></div>
+      <div id="sync-conflict-actions" style="display:none;margin-bottom:10px"><button class="btn btn-ghost" style="width:100%;margin-bottom:6px" onclick="resolveConflictDevice()" data-i="sync_use_device">Use this device version</button><button class="btn btn-ghost" style="width:100%" onclick="resolveConflictCloud()" data-i="sync_use_cloud">Use cloud version</button></div>
       <button class="btn btn-ghost" style="width:100%" onclick="doLogout()" data-i="logout_btn">Atsijungti</button>
     </div>
   </div>
@@ -703,7 +704,7 @@ const LANGS={
     remove_obj:'✕ Pašalinti',week_val:'val.',locale:'lt-LT',
     view_list:'📋 Sąrašas',view_calendar:'📅 Kalendorius',cal_filled:'Užpildyta',cal_vacation:'Atostogos',cal_today:'Šiandien',cal_weekend_holiday:'Savaitgalis / šventinė d.',cal_holiday:'Šventinė diena',
     local_mode_label:'💾 Duomenys saugomi šiame įrenginyje',local_mode_title:'Vietinis saugojimas',enable_cloud_btn:'☁️ Įjungti debesį',logout_btn:'Atsijungti',
-    cloud_confirm_title:'Įjungti debesies saugojimą?',cloud_confirm_desc:'Prisijungę su Google, jūsų duomenys bus saugomi debesyje ir pasiekiami iš kitų įrenginių.',
+    cloud_confirm_title:'Įjungti debesies saugojimą?',cloud_confirm_desc:'Prisijungę su Google, jūsų duomenys bus saugomi debesyje ir pasiekiami iš kitų įrenginių.',sync_syncing:'Sinchronizuojama',sync_saved:'Išsaugota',sync_failed:'Nepavyko',sync_conflict:'Konfliktas',sync_conflict_toast:'⚠️ Aptiktas sinchronizavimo konfliktas',sync_use_device:'Naudoti šio įrenginio versiją',sync_use_cloud:'Naudoti debesies versiją',sync_use_device_confirm:'Pakeisti debesies duomenis šio įrenginio versija?',sync_use_cloud_confirm:'Pakeisti šio įrenginio duomenis debesies versija?',
   },
   en:{
     nav_add:'Add',nav_entries:'Entries',nav_finance:'Finance',nav_settings:'Settings',
@@ -735,7 +736,7 @@ const LANGS={
     remove_obj:'✕ Remove',week_val:'hrs.',locale:'en-GB',
     view_list:'📋 List',view_calendar:'📅 Calendar',cal_filled:'Filled',cal_vacation:'Vacation',cal_today:'Today',cal_weekend_holiday:'Weekend / public holiday',cal_holiday:'Public holiday',
     local_mode_label:'💾 Data stored on this device',local_mode_title:'Local storage',enable_cloud_btn:'☁️ Enable cloud',logout_btn:'Sign out',
-    cloud_confirm_title:'Enable cloud sync?',cloud_confirm_desc:'After signing in with Google, your data will be stored in the cloud and accessible from other devices.',
+    cloud_confirm_title:'Enable cloud sync?',cloud_confirm_desc:'After signing in with Google, your data will be stored in the cloud and accessible from other devices.',sync_syncing:'Syncing',sync_saved:'Saved',sync_failed:'Failed',sync_conflict:'Conflict',sync_conflict_toast:'⚠️ A synchronization conflict was detected',sync_use_device:'Use this device version',sync_use_cloud:'Use cloud version',sync_use_device_confirm:'Replace cloud data with this device version?',sync_use_cloud_confirm:'Replace this device data with the cloud version?',
   },
   ru:{
     nav_add:'Добавить',nav_entries:'Записи',nav_finance:'Финансы',nav_settings:'Настройки',
@@ -767,7 +768,7 @@ const LANGS={
     remove_obj:'✕ Убрать',week_val:'ч.',locale:'ru-RU',
     view_list:'📋 Список',view_calendar:'📅 Календарь',cal_filled:'Заполнено',cal_vacation:'Отпуск',cal_today:'Сегодня',cal_weekend_holiday:'Выходной / праздничный день',cal_holiday:'Праздничный день',
     local_mode_label:'💾 Данные хранятся на этом устройстве',local_mode_title:'Локальное хранение',enable_cloud_btn:'☁️ Включить облако',logout_btn:'Выйти',
-    cloud_confirm_title:'Включить облачное хранение?',cloud_confirm_desc:'После входа через Google ваши данные будут храниться в облаке и доступны с других устройств.',
+    cloud_confirm_title:'Включить облачное хранение?',cloud_confirm_desc:'После входа через Google ваши данные будут храниться в облаке и доступны с других устройств.',sync_syncing:'Синхронизация',sync_saved:'Сохранено',sync_failed:'Ошибка',sync_conflict:'Конфликт',sync_conflict_toast:'⚠️ Обнаружен конфликт синхронизации',sync_use_device:'Использовать версию этого устройства',sync_use_cloud:'Использовать версию из облака',sync_use_device_confirm:'Заменить данные в облаке версией этого устройства?',sync_use_cloud_confirm:'Заменить данные устройства версией из облака?',
   }
 };
 
@@ -799,31 +800,35 @@ function t(k){return(LANGS[data.settings.lang]||LANGS.lt)[k]||k;}
 // #endregion State
 
 // #region Storage
-function save(){
-  if(isLoadingFromCloud)return;
-
-  // Pure local mode (no cloud sync enabled) — save only to local key, no Firestore at all
-  if(IS_LOCAL_MODE && !currentUser){
-    try{localStorage.setItem('dv-local-data',JSON.stringify(data));}catch(e){}
-    return;
-  }
-
-  // Cloud mode — cache locally for snappy reload + sync to Firestore
-  if(currentUser){
-    try{localStorage.setItem('dv-cache-'+currentUser.uid,JSON.stringify(data));}catch(e){}
-    const dot=document.getElementById('sync-dot');
-    if(dot)dot.classList.add('syncing');
-    clearTimeout(saveTimer);
-    saveTimer=setTimeout(async()=>{
-      try{
-        await window.fb.setDoc(window.fb.doc(window.fb.db,'users',currentUser.uid),data);
-      }catch(e){console.error('Sync error',e);}
-      if(dot)dot.classList.remove('syncing');
-    },600);
-  }
+const CACHE_SCHEMA_VERSION=1;
+let cloudCache=null,localChangeSequence=0,writeInProgress=false,retryTimer=null,retryDelay=2000,cloudUnsubscribe=null,syncConflict=false;
+function cacheKey(){return 'dv-cache-'+currentUser.uid;}
+function deviceId(){let id=localStorage.getItem('dv-device-id');if(!id){id=(window.crypto&&window.crypto.randomUUID)?window.crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`;localStorage.setItem('dv-device-id',id);}return id;}
+function payloadOf(value){const copy=Object.assign({},value||{});delete copy._sync;return copy;}
+function syncOf(value){const sync=value&&value._sync||{};return {revision:Number.isFinite(sync.revision)?sync.revision:0,updatedAt:sync.updatedAt||0,deviceId:sync.deviceId||''};}
+function readCloudCache(){try{const raw=JSON.parse(localStorage.getItem(cacheKey()));if(raw&&raw.schemaVersion===CACHE_SCHEMA_VERSION&&raw.payload)return raw;if(raw)return {schemaVersion:CACHE_SCHEMA_VERSION,payload:raw,baseRevision:0,dirty:false,localChangedAt:0,legacy:true};}catch(e){}return null;}
+function writeCloudCache(){if(!currentUser||!cloudCache)return;try{localStorage.setItem(cacheKey(),JSON.stringify(cloudCache));}catch(e){}}
+function setSyncStatus(status){const dot=document.getElementById('sync-dot'),label=document.getElementById('sync-status');if(dot)dot.classList.toggle('syncing',status==='syncing');if(!label)return;label.className='sync-status '+(status||'');label.textContent=status?t('sync_'+status):'';label.title=label.getAttribute('aria-label')=label.textContent;if(status==='saved')setTimeout(()=>{if(label.textContent===t('sync_saved'))setSyncStatus('');},1500);}
+function setConflict(){syncConflict=true;setSyncStatus('conflict');document.getElementById('sync-conflict-actions').style.display='block';try{localStorage.setItem(`dv-conflict-${currentUser.uid}-${Date.now()}`,JSON.stringify(cloudCache&&cloudCache.payload||data));}catch(e){}toast(t('sync_conflict_toast'),true);}
+function clearConflict(){syncConflict=false;document.getElementById('sync-conflict-actions').style.display='none';}
+function scheduleSync(delay=600){if(!currentUser||!cloudCache||!cloudCache.dirty||syncConflict||writeInProgress)return;clearTimeout(saveTimer);saveTimer=setTimeout(syncNow,delay);}
+function retrySync(){clearTimeout(retryTimer);retryTimer=setTimeout(()=>scheduleSync(0),retryDelay);retryDelay=Math.min(retryDelay===2000?5000:retryDelay===5000?15000:30000,30000);}
+async function syncNow(){
+ if(writeInProgress||!currentUser||!cloudCache||!cloudCache.dirty||syncConflict)return;
+ writeInProgress=true;setSyncStatus('syncing');const sequence=localChangeSequence,payload=JSON.parse(JSON.stringify(cloudCache.payload)),base=cloudCache.baseRevision,ref=window.fb.doc(window.fb.db,'users',currentUser.uid);
+ try{const result=await window.fb.runTransaction(window.fb.db,async tx=>{const snap=await tx.get(ref),remote=syncOf(snap.exists()?snap.data():null);if(remote.revision!==base)return {conflict:true};const revision=remote.revision+1;tx.set(ref,Object.assign({},payload,{_sync:{revision,updatedAt:Date.now(),deviceId:deviceId()}}));return {revision};});
+  if(result.conflict){setConflict();return;}
+  cloudCache.baseRevision=result.revision;if(localChangeSequence===sequence)cloudCache.dirty=false;writeCloudCache();retryDelay=2000;setSyncStatus('saved');if(cloudCache.dirty)scheduleSync();
+ }catch(e){console.error('Sync error',e);setSyncStatus('failed');retrySync();}finally{writeInProgress=false;}
 }
-
+function save(){
+ if(isLoadingFromCloud)return;
+ if(IS_LOCAL_MODE&&!currentUser){try{localStorage.setItem('dv-local-data',JSON.stringify(data));}catch(e){}return;}
+ if(currentUser){cloudCache=cloudCache||{schemaVersion:CACHE_SCHEMA_VERSION,payload:data,baseRevision:0,dirty:false,localChangedAt:0};cloudCache.payload=data;cloudCache.dirty=true;cloudCache.localChangedAt=Date.now();localChangeSequence++;writeCloudCache();scheduleSync();}
+}
+window.addEventListener('online',()=>{if(currentUser&&cloudCache&&cloudCache.dirty&&!syncConflict){retryDelay=2000;scheduleSync(0);}});
 // #endregion Storage
+
 
 // #region Authentication
 // ===== AUTH =====
@@ -922,65 +927,35 @@ window.goToSettingsForCloud=function(){
   },80);
 };
 
+window.resolveConflictDevice=function(){confirm2(t('sync_use_device_confirm'),async()=>{
+  if(!currentUser||!cloudCache)return;const ref=window.fb.doc(window.fb.db,'users',currentUser.uid);setSyncStatus('syncing');
+  try{const revision=await window.fb.runTransaction(window.fb.db,async tx=>{const snap=await tx.get(ref),next=syncOf(snap.exists()?snap.data():null).revision+1;tx.set(ref,Object.assign({},cloudCache.payload,{_sync:{revision:next,updatedAt:Date.now(),deviceId:deviceId()}}));return next;});cloudCache.baseRevision=revision;cloudCache.dirty=false;writeCloudCache();clearConflict();setSyncStatus('saved');}catch(e){setSyncStatus('failed');retrySync();}
+},t('sync_use_device'));};
+window.resolveConflictCloud=function(){confirm2(t('sync_use_cloud_confirm'),async()=>{
+  if(!currentUser)return;try{const snap=await window.fb.getDoc(window.fb.doc(window.fb.db,'users',currentUser.uid));if(!snap.exists())throw new Error('Missing cloud document');const remote=snap.data();cloudCache={schemaVersion:CACHE_SCHEMA_VERSION,payload:payloadOf(remote),baseRevision:syncOf(remote).revision,dirty:false,localChangedAt:Date.now()};writeCloudCache();isLoadingFromCloud=true;data=mergeDefaults(cloudCache.payload);isLoadingFromCloud=false;clearConflict();setSyncStatus('saved');initAppUI();}catch(e){setSyncStatus('failed');}
+},t('sync_use_cloud'));};
+function subscribeCloud(user){
+ if(cloudUnsubscribe)cloudUnsubscribe();const ref=window.fb.doc(window.fb.db,'users',user.uid);
+ cloudUnsubscribe=window.fb.onSnapshot(ref,snap=>{if(!snap.exists()||!cloudCache)return;const remote=snap.data(),meta=syncOf(remote);if(meta.deviceId===deviceId()&&meta.revision<=cloudCache.baseRevision)return;if(meta.revision<=cloudCache.baseRevision)return;if(cloudCache.dirty){setConflict();return;}cloudCache={schemaVersion:CACHE_SCHEMA_VERSION,payload:payloadOf(remote),baseRevision:meta.revision,dirty:false,localChangedAt:Date.now()};writeCloudCache();isLoadingFromCloud=true;data=mergeDefaults(cloudCache.payload);isLoadingFromCloud=false;initAppUI();setSyncStatus('saved');},()=>{if(cloudCache&&cloudCache.dirty){setSyncStatus('failed');retrySync();}});
+}
 window.onFbAuthChange=async function(user){
-  currentUser=user;
-
-  if((IS_LOCAL_MODE||forcedLocalChoice) && !cloudSyncEnabled){
-    // pure local mode — never show login
-    startLocalMode();
-    return;
-  }
-
-  if((IS_LOCAL_MODE||forcedLocalChoice) && cloudSyncEnabled && !user){
-    // user wants cloud but got signed out — fall back to local until they sign in again
-    startLocalMode();
-    return;
-  }
-
-  if(user){
-    document.getElementById('login-screen').classList.add('app-hidden');
-    document.getElementById('app-root').classList.remove('app-hidden');
-    document.getElementById('local-badge').style.display='none';
-    document.querySelector('nav').classList.remove('has-badge');
-    document.getElementById('user-bar-cloud').style.display='flex';
-    document.getElementById('sync-local-block').style.display='none';
-    document.getElementById('sync-cloud-block').style.display='block';
-    document.getElementById('ub-name').textContent=user.displayName||user.email||'';
-    document.getElementById('ub-photo').src=user.photoURL||'';
-    updateCloudDescription();
-
-    try{
-      const cached=localStorage.getItem('dv-cache-'+user.uid);
-      if(cached){
-        isLoadingFromCloud=true;
-        data=mergeDefaults(JSON.parse(cached));
-        isLoadingFromCloud=false;
-      }
-    }catch(e){}
-
-    try{
-      const snap=await window.fb.getDoc(window.fb.doc(window.fb.db,'users',user.uid));
-      isLoadingFromCloud=true;
-      if(snap.exists()){
-        data=mergeDefaults(snap.data());
-      }else{
-        // first time enabling cloud — migrate local data if present
-        const localBackup=localStorage.getItem('dv-local-data');
-        data=mergeDefaults(localBackup?JSON.parse(localBackup):{});
-        await window.fb.setDoc(window.fb.doc(window.fb.db,'users',user.uid),data);
-      }
-      isLoadingFromCloud=false;
-    }catch(e){
-      console.error('Load error',e);
-      isLoadingFromCloud=false;
-    }
-
-    initAppUI();
-  }else{
-    // https mode without login — must show login screen
-    document.getElementById('login-screen').classList.remove('app-hidden');
-    document.getElementById('app-root').classList.add('app-hidden');
-  }
+ if(cloudUnsubscribe){cloudUnsubscribe();cloudUnsubscribe=null;}currentUser=user;
+ if((IS_LOCAL_MODE||forcedLocalChoice)&&!cloudSyncEnabled){startLocalMode();return;}
+ if((IS_LOCAL_MODE||forcedLocalChoice)&&cloudSyncEnabled&&!user){startLocalMode();return;}
+ if(!user){document.getElementById('login-screen').classList.remove('app-hidden');document.getElementById('app-root').classList.add('app-hidden');return;}
+ document.getElementById('login-screen').classList.add('app-hidden');document.getElementById('app-root').classList.remove('app-hidden');document.getElementById('local-badge').style.display='none';document.querySelector('nav').classList.remove('has-badge');document.getElementById('user-bar-cloud').style.display='flex';document.getElementById('sync-local-block').style.display='none';document.getElementById('sync-cloud-block').style.display='block';document.getElementById('ub-name').textContent=user.displayName||user.email||'';document.getElementById('ub-photo').src=user.photoURL||'';updateCloudDescription();clearConflict();
+ cloudCache=readCloudCache();const hadLegacy=cloudCache&&cloudCache.legacy;
+ try{
+  const ref=window.fb.doc(window.fb.db,'users',user.uid),snap=await window.fb.getDoc(ref),remote=snap.exists()?snap.data():null,remoteMeta=syncOf(remote);
+  if(!remote){
+   const localBackup=localStorage.getItem('dv-local-data');if(!cloudCache)cloudCache={schemaVersion:CACHE_SCHEMA_VERSION,payload:mergeDefaults(localBackup?JSON.parse(localBackup):{}),baseRevision:0,dirty:true,localChangedAt:Date.now()};else {cloudCache.payload=mergeDefaults(cloudCache.payload);cloudCache.dirty=true;}data=mergeDefaults(cloudCache.payload);writeCloudCache();scheduleSync(0);
+  }else if(!cloudCache){cloudCache={schemaVersion:CACHE_SCHEMA_VERSION,payload:payloadOf(remote),baseRevision:remoteMeta.revision,dirty:false,localChangedAt:Date.now()};data=mergeDefaults(cloudCache.payload);writeCloudCache();
+  }else if(hadLegacy&&JSON.stringify(payloadOf(remote))!==JSON.stringify(cloudCache.payload)){cloudCache.dirty=true;cloudCache.baseRevision=0;data=mergeDefaults(cloudCache.payload);writeCloudCache();setConflict();
+  }else if(!cloudCache.dirty){cloudCache={schemaVersion:CACHE_SCHEMA_VERSION,payload:payloadOf(remote),baseRevision:remoteMeta.revision,dirty:false,localChangedAt:Date.now()};data=mergeDefaults(cloudCache.payload);writeCloudCache();
+  }else if(remoteMeta.revision===cloudCache.baseRevision){data=mergeDefaults(cloudCache.payload);scheduleSync();
+  }else {data=mergeDefaults(cloudCache.payload);setConflict();}
+ }catch(e){console.error('Load error',e);if(cloudCache){data=mergeDefaults(cloudCache.payload);if(cloudCache.dirty){setSyncStatus('failed');retrySync();}}}
+ initAppUI();subscribeCloud(user);
 };
 
 // #endregion Authentication
@@ -2109,8 +2084,9 @@ function validateBackup(backup){
 async function saveRestoredBackup(restored){
   if(IS_LOCAL_MODE&&!currentUser){localStorage.setItem('dv-local-data',JSON.stringify(restored));return;}
   if(!currentUser)throw new Error('No storage destination');
-  await window.fb.setDoc(window.fb.doc(window.fb.db,'users',currentUser.uid),restored);
-  try{localStorage.setItem('dv-cache-'+currentUser.uid,JSON.stringify(restored));}catch(e){}
+  cloudCache=cloudCache||{schemaVersion:CACHE_SCHEMA_VERSION,payload:restored,baseRevision:0,dirty:false,localChangedAt:0};
+  cloudCache.payload=restored;cloudCache.dirty=true;cloudCache.localChangedAt=Date.now();localChangeSequence++;writeCloudCache();
+  await syncNow();if(cloudCache.dirty||syncConflict)throw new Error('Cloud restore not synchronized');
 }
 function restoreBackup(input){
   const file=input.files&&input.files[0];input.value='';
@@ -2124,9 +2100,9 @@ function restoreBackup(input){
     confirm2(t('backup_restore_confirm'),async()=>{
       createBackup(false);
       try{
-        await saveRestoredBackup(restored);
         data=mergeDefaults(restored);delete data._isNewUser;
-        save();initAppUI();toast(t('backup_restored'));
+        await saveRestoredBackup(data);
+        initAppUI();toast(t('backup_restored'));
       }catch(e){console.error('Restore error',e);toast(t('backup_restore_failed'),true);}
     },t('backup_restore_yes'));
   };
