@@ -1354,15 +1354,6 @@ function addObjBlock(){
   renderObjBlocks();updateTotalH();scrollNewAddObjectBlock(objBlocks.length-1);
 }
 function scrollNewAddObjectBlock(i){scrollNewObjectBlock('add',i);}
-function getVisualElementTop(element){
-  const viewportOffset=window.visualViewport?.offsetTop||0;
-  return element.getBoundingClientRect().top-viewportOffset;
-}
-function getTargetVisualTop(){
-  const userBar=document.getElementById('user-bar-cloud');
-  const visible=userBar&&userBar.offsetParent!==null&&getComputedStyle(userBar).position==='sticky';
-  return visible?userBar.getBoundingClientRect().height:0;
-}
 function scrollNewObjectBlock(pfx,i){
   const newBlock=document.getElementById(`${pfx}-ob-${i}`);
   const newInput=document.getElementById(`${pfx}-obj-${i}`);
@@ -1398,13 +1389,21 @@ function scrollNewObjectBlock(pfx,i){
   newInput.focus({preventScroll:true});
   waitForViewportSettle(()=>{
     const modal=newBlock.closest('.modal');
+    const getMainDelta=()=>{
+      const userBar=document.getElementById('user-bar-cloud');
+      const userBarRect=userBar?.getBoundingClientRect();
+      const targetTop=userBar&&userBar.offsetParent!==null&&getComputedStyle(userBar).position==='sticky'
+        ?userBarRect.bottom
+        :0;
+      return newBlock.getBoundingClientRect().top-targetTop;
+    };
     const correct=()=>{
-      const delta=modal
+      const correction=modal
         ?newBlock.getBoundingClientRect().top-modal.getBoundingClientRect().top
-        :getVisualElementTop(newBlock)-getTargetVisualTop();
-      if(Math.abs(delta)>2){
-        if(modal)modal.scrollTop+=delta;
-        else (document.scrollingElement||document.documentElement).scrollTop+=delta;
+        :getMainDelta();
+      if(Math.abs(correction)>2){
+        if(modal)modal.scrollTop+=correction;
+        else (document.scrollingElement||document.documentElement).scrollTop+=correction;
         return true;
       }
       return false;
@@ -1442,7 +1441,7 @@ function scrollNewObjectBlock(pfx,i){
     }
 
     const scroller=document.scrollingElement||document.documentElement;
-    const delta=getVisualElementTop(newBlock)-getTargetVisualTop();
+    const delta=getMainDelta();
     const targetScrollTop=Math.max(0,scroller.scrollTop+delta);
     animate(scroller.scrollTop,targetScrollTop,value=>{scroller.scrollTop=value;},()=>{
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
