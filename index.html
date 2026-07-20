@@ -1354,20 +1354,34 @@ function addObjBlock(){
   objBlocks.push({obj:'',from:pt,to:addHr(pt,1),mult:null});
   renderObjBlocks();updateTotalH();scrollNewAddObjectBlock(objBlocks.length-1);
 }
-function scrollNewAddObjectBlock(i){
+function scrollNewAddObjectBlock(i){scrollNewObjectBlock('add',i);}
+function scrollNewObjectBlock(pfx,i){
   requestAnimationFrame(()=>{
-    const newBlock=document.getElementById(`add-ob-${i}`);
+    const newBlock=document.getElementById(`${pfx}-ob-${i}`);
+    const newInput=document.getElementById(`${pfx}-obj-${i}`);
     if(!newBlock)return;
 
-    const userBar=document.getElementById('user-bar-cloud');
-    const userBarRect=userBar?.getBoundingClientRect();
-    const isUserBarVisible=userBar?.offsetParent!==null&&userBarRect&&userBarRect.bottom>0&&userBarRect.top<window.innerHeight;
-    const visibleUserBarBottom=isUserBarVisible?userBarRect.bottom:0;
-    const blockTop=newBlock.getBoundingClientRect().top;
-    const targetTop=visibleUserBarBottom;
-    const delta=blockTop-targetTop;
-
-    window.scrollTo({top:window.scrollY+delta,behavior:'smooth'});
+    const modalScrollContainer=newBlock.closest('.modal');
+    const targetTop=modalScrollContainer
+      ?modalScrollContainer.getBoundingClientRect().top
+      :(()=>{
+        const userBar=document.getElementById('user-bar-cloud');
+        const userBarRect=userBar?.getBoundingClientRect();
+        return userBar?.offsetParent!==null&&userBarRect&&userBarRect.bottom>0&&userBarRect.top<window.innerHeight
+          ?userBarRect.bottom:0;
+      })();
+    const scrollContainer=modalScrollContainer||window;
+    const scrollBy=delta=>scrollContainer.scrollBy({top:delta,behavior:'smooth'});
+    const correctScroll=()=>{
+      const visibleTop=modalScrollContainer?modalScrollContainer.getBoundingClientRect().top:targetTop;
+      const remainingDelta=newBlock.getBoundingClientRect().top-visibleTop;
+      if(Math.abs(remainingDelta)>2)scrollContainer.scrollBy({top:remainingDelta});
+    };
+    const delta=newBlock.getBoundingClientRect().top-targetTop;
+    newInput?.focus({preventScroll:true});
+    if(Math.abs(delta)<=2){correctScroll();return;}
+    scrollContainer.addEventListener('scrollend',correctScroll,{once:true});
+    scrollBy(delta);
   });
 }
 function removeObjBlock(i){objBlocks.splice(i,1);renderObjBlocks();updateTotalH();}
@@ -1446,48 +1460,6 @@ function renderBlocksTo(blocks,container,pfx,removeFn,multFn,changeFn,totalFn){
     </div>`;
   }).join('');
 }
-function focusNewObjectBlock(pfx,i){
-  requestAnimationFrame(()=>{
-    const block=document.getElementById(`${pfx}-ob-${i}`),input=document.getElementById(`${pfx}-obj-${i}`);
-    if(!block||!input)return;
-    const modal=block.closest('.modal');
-    input.focus({preventScroll:true});
-    const viewport=window.visualViewport;
-    let lastSize='',stableFrames=0,frames=0,resizeSeen=!viewport;
-    const onResize=()=>{resizeSeen=true;stableFrames=0;};
-    viewport?.addEventListener('resize',onResize,{once:true});
-    const correctScroll=()=>{
-      viewport?.removeEventListener('resize',onResize);
-      const vv=window.visualViewport;
-      const viewportTop=vv?.offsetTop||0;
-      const viewportBottom=viewportTop+(vv?.height||window.innerHeight);
-      const blockTop=block.getBoundingClientRect().top;
-      let visibleTopOffset=viewportTop;
-      if(modal)visibleTopOffset=Math.max(visibleTopOffset,modal.getBoundingClientRect().top);
-      else{
-        const userBar=document.getElementById('user-bar-cloud');
-        const barRect=userBar?.getBoundingClientRect();
-        if(userBar?.offsetParent!==null&&barRect&&barRect.bottom>viewportTop&&barRect.top<viewportBottom){
-          visibleTopOffset=Math.max(visibleTopOffset,barRect.top+barRect.height);
-        }
-      }
-      const delta=blockTop-(visibleTopOffset+8);
-      if(modal)modal.scrollTop+=delta;
-      else window.scrollTo(0,window.scrollY+delta);
-    };
-    const waitForViewport=()=>{
-      const vv=window.visualViewport;
-      const size=vv?`${vv.offsetTop}:${vv.height}`:'';
-      stableFrames=size===lastSize?stableFrames+1:0;
-      lastSize=size;
-      frames++;
-      if(stableFrames>=3&&(resizeSeen||frames>=12))correctScroll();
-      else requestAnimationFrame(waitForViewport);
-    };
-    requestAnimationFrame(waitForViewport);
-  });
-}
-
 window.addBlocks=objBlocks;
 function renderObjBlocks(){window.addBlocks=objBlocks;renderBlocksTo(objBlocks,document.getElementById('obj-blocks'),'add','removeObjBlock','addMult','addChange',updateTotalH);updateAddObjectButtons();}
 function addChange(i){renderObjBlocks();updateTotalH();}
@@ -1853,7 +1825,7 @@ function addEditObjBlock(){
   if(editBlocks.some(b=>isVacationObject(b.obj)))return;
   const prev=editBlocks[editBlocks.length-1];
   const pt=prev?.to||data.settings.end||'17:00';
-  editBlocks.push({obj:'',from:pt,to:addHr(pt,1),mult:null});renderEditBlocks();focusNewObjectBlock('edit',editBlocks.length-1);
+  editBlocks.push({obj:'',from:pt,to:addHr(pt,1),mult:null});renderEditBlocks();scrollNewObjectBlock('edit',editBlocks.length-1);
 }
 function updateEditTotalH(){
   const tot=editBlocks.reduce((s,b,i)=>s+calcH(b,i===0),0);
