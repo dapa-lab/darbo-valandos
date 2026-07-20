@@ -32,8 +32,23 @@
 
   window.fb = { auth, db, doc, getDoc, onSnapshot, runTransaction, signInWithPopup, provider, signOut };
 
-  onAuthStateChanged(auth, (user) => {
-    window.onFbAuthChange && window.onFbAuthChange(user);
+  window.fbAuthStateReady = false;
+  window.fbAuthUser = null;
+
+  onAuthStateChanged(auth, user => {
+    window.fbAuthStateReady = true;
+    window.fbAuthUser = user;
+
+    if (typeof window.onFbAuthChange === 'function') {
+      Promise.resolve(window.onFbAuthChange(user)).catch(error => {
+        console.error('Firebase auth state handling failed', {
+          operation: 'onAuthStateChanged',
+          code: error?.code,
+          message: error?.message,
+          error
+        });
+      });
+    }
   });
 // #endregion Storage
 </script>
@@ -960,6 +975,17 @@ window.onFbAuthChange=async function(user){
  }catch(e){console.error('Cloud initialization read failed',{operation:'onFbAuthChange.getDoc',code:e.code,message:e.message,error:e});if(cloudCache){data=mergeDefaults(cloudCache.payload);if(cloudCache.dirty){setSyncStatus('failed');retrySync();}}else {cloudCache={schemaVersion:CACHE_SCHEMA_VERSION,payload:mergeDefaults({}),baseRevision:0,dirty:false,localChangedAt:Date.now()};data=cloudCache.payload;writeCloudCache();initAppUI();uiInitialized=true;document.getElementById('app-root').classList.remove('app-hidden');}}
  subscribeCloud(user);
 };
+
+if (window.fbAuthStateReady) {
+  Promise.resolve(window.onFbAuthChange(window.fbAuthUser)).catch(error => {
+    console.error('Buffered Firebase auth handling failed', {
+      operation: 'bufferedAuthState',
+      code: error?.code,
+      message: error?.message,
+      error
+    });
+  });
+}
 
 // #endregion Authentication
 
