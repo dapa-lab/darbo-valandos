@@ -1366,6 +1366,8 @@ function reportAddObjectScrollDiagnostics(stage,newBlock,values={}){
   const userBar=document.getElementById('user-bar-cloud');
   const userBarRect=userBar?.getBoundingClientRect();
   const scrollingElement=document.scrollingElement;
+  const maxScrollTop=scrollingElement.scrollHeight-scrollingElement.clientHeight;
+  const currentScrollTop=scrollingElement.scrollTop;
   const viewport=window.visualViewport;
   const diagnostics={
     stage,
@@ -1378,6 +1380,14 @@ function reportAddObjectScrollDiagnostics(stage,newBlock,values={}){
     'document.body.scrollTop':document.body.scrollTop,
     'document.scrollingElement.tagName':scrollingElement?.tagName??null,
     'document.scrollingElement.scrollTop':scrollingElement?.scrollTop??null,
+    'document.scrollingElement.scrollHeight':scrollingElement.scrollHeight,
+    'document.scrollingElement.clientHeight':scrollingElement.clientHeight,
+    maxScrollTop,
+    currentScrollTop,
+    remainingScroll:maxScrollTop-currentScrollTop,
+    atMaximumScroll:Math.abs(maxScrollTop-currentScrollTop)<=2,
+    'document.body.scrollHeight':document.body.scrollHeight,
+    'newBlock top minus userBar bottom':userBarRect?newBlock.getBoundingClientRect().top-userBarRect.bottom:null,
     'visualViewport.offsetTop':viewport?.offsetTop??null,
     'visualViewport.height':viewport?.height??null,
     'window.innerHeight':window.innerHeight,
