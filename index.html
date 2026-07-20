@@ -1354,6 +1354,15 @@ function addObjBlock(){
   renderObjBlocks();updateTotalH();scrollNewAddObjectBlock(objBlocks.length-1);
 }
 function scrollNewAddObjectBlock(i){scrollNewObjectBlock('add',i);}
+function getVisualElementTop(element){
+  const viewportOffset=window.visualViewport?.offsetTop||0;
+  return element.getBoundingClientRect().top-viewportOffset;
+}
+function getTargetVisualTop(){
+  const userBar=document.getElementById('user-bar-cloud');
+  const visible=userBar&&userBar.offsetParent!==null&&getComputedStyle(userBar).position==='sticky';
+  return visible?userBar.getBoundingClientRect().height:0;
+}
 function scrollNewObjectBlock(pfx,i){
   const newBlock=document.getElementById(`${pfx}-ob-${i}`);
   const newInput=document.getElementById(`${pfx}-obj-${i}`);
@@ -1368,68 +1377,77 @@ function scrollNewObjectBlock(pfx,i){
     };
     requestAnimationFrame(frame);
   };
-  const waitForViewportStable=finish=>{
+  const waitForViewportSettle=(finish,fallback=700)=>{
     const viewport=window.visualViewport;
-    let stableTimer,fallbackTimer,finished=false;
+    if(!viewport){requestAnimationFrame(finish);return;}
+    let settleTimer,fallbackTimer,finished=false;
     const cleanup=()=>{
-      viewport?.removeEventListener('resize',onResize);
-      clearTimeout(stableTimer);clearTimeout(fallbackTimer);
+      viewport.removeEventListener('resize',onViewportChange);
+      viewport.removeEventListener('scroll',onViewportChange);
+      clearTimeout(settleTimer);clearTimeout(fallbackTimer);
     };
     const done=()=>{if(finished)return;finished=true;cleanup();finish();};
-    const onResize=()=>{
-      clearTimeout(stableTimer);
-      stableTimer=setTimeout(done,150);
+    const onViewportChange=()=>{
+      clearTimeout(settleTimer);
+      settleTimer=setTimeout(done,150);
     };
-    viewport?.addEventListener('resize',onResize);
-    fallbackTimer=setTimeout(done,500);
-  };
-  const correctAfterFinalResize=correct=>{
-    const viewport=window.visualViewport;
-    if(!viewport)return;
-    let stableTimer,fallbackTimer,corrected=false;
-    const cleanup=()=>{
-      viewport.removeEventListener('resize',onResize);
-      clearTimeout(stableTimer);clearTimeout(fallbackTimer);
-    };
-    const onResize=()=>{
-      clearTimeout(stableTimer);
-      stableTimer=setTimeout(()=>{
-        if(corrected)return;
-        corrected=true;cleanup();correct();
-      },150);
-    };
-    viewport.addEventListener('resize',onResize);
-    fallbackTimer=setTimeout(cleanup,500);
+    viewport.addEventListener('resize',onViewportChange);
+    viewport.addEventListener('scroll',onViewportChange);
+    onViewportChange();fallbackTimer=setTimeout(done,fallback);
   };
   newInput.focus({preventScroll:true});
-  waitForViewportStable(()=>{
+  waitForViewportSettle(()=>{
     const modal=newBlock.closest('.modal');
-    if(modal){
-      const modalRect=modal.getBoundingClientRect();
-      const blockRect=newBlock.getBoundingClientRect();
-      const targetScrollTop=modal.scrollTop+blockRect.top-modalRect.top;
-      const correct=()=>{
-        const correction=newBlock.getBoundingClientRect().top-modal.getBoundingClientRect().top;
-        if(Math.abs(correction)>2)modal.scrollBy(0,correction);
+    const correct=()=>{
+      const delta=modal
+        ?newBlock.getBoundingClientRect().top-modal.getBoundingClientRect().top
+        :getVisualElementTop(newBlock)-getTargetVisualTop();
+      if(Math.abs(delta)>2){
+        if(modal)modal.scrollTop+=delta;
+        else (document.scrollingElement||document.documentElement).scrollTop+=delta;
+        return true;
+      }
+      return false;
+    };
+    const watchForViewportPan=(maxCorrections,corrections=0)=>{
+      const viewport=window.visualViewport;
+      if(!viewport||corrections>=maxCorrections)return;
+      let settleTimer,endTimer,changed=false;
+      const cleanup=()=>{
+        viewport.removeEventListener('resize',onViewportChange);
+        viewport.removeEventListener('scroll',onViewportChange);
+        clearTimeout(settleTimer);clearTimeout(endTimer);
       };
+      const onViewportChange=()=>{
+        changed=true;clearTimeout(settleTimer);
+        settleTimer=setTimeout(()=>{
+          if(!changed)return;
+          cleanup();
+          if(correct())watchForViewportPan(maxCorrections,corrections+1);
+        },150);
+      };
+      viewport.addEventListener('resize',onViewportChange);
+      viewport.addEventListener('scroll',onViewportChange);
+      endTimer=setTimeout(cleanup,700);
+    };
+    if(modal){
+      const delta=newBlock.getBoundingClientRect().top-modal.getBoundingClientRect().top;
+      const targetScrollTop=modal.scrollTop+delta;
       animate(modal.scrollTop,targetScrollTop,value=>{modal.scrollTop=value;},()=>{
-        correct();correctAfterFinalResize(correct);
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          correct();watchForViewportPan(1);
+        }));
       });
       return;
     }
 
-    const userBar=document.getElementById('user-bar-cloud');
-    const userBarRect=userBar?.getBoundingClientRect();
-    const targetTop=userBar&&userBar.offsetParent!==null&&getComputedStyle(userBar).position==='sticky'
-      ?userBarRect.bottom:0;
-    const delta=newBlock.getBoundingClientRect().top-targetTop;
-    const targetScrollY=window.scrollY+delta;
-    const correct=()=>{
-      const correction=newBlock.getBoundingClientRect().top-targetTop;
-      if(Math.abs(correction)>2)window.scrollBy(0,correction);
-    };
-    animate(window.scrollY,Math.max(0,targetScrollY),value=>window.scrollTo(0,value),()=>{
-      correct();correctAfterFinalResize(correct);
+    const scroller=document.scrollingElement||document.documentElement;
+    const delta=getVisualElementTop(newBlock)-getTargetVisualTop();
+    const targetScrollTop=Math.max(0,scroller.scrollTop+delta);
+    animate(scroller.scrollTop,targetScrollTop,value=>{scroller.scrollTop=value;},()=>{
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        const corrected=correct();watchForViewportPan(3,corrected?1:0);
+      }));
     });
   });
 }
