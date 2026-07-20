@@ -791,6 +791,7 @@ let currentUser=null;
 let saveTimer=null;
 let syncStatus='',syncStatusTimer=null;
 let saveAttempt=0;
+let cloudSaveActive=false,cloudSavePending=false,retryTimer=null,retryStep=0;
 let isLoadingFromCloud=false;
 
 let curMonth=new Date().getMonth(),curYear=new Date().getFullYear();
@@ -812,6 +813,68 @@ function setSyncStatus(status){
   if(el){const label=status?t('sync_'+status):'';el.textContent=label;el.title=label;el.setAttribute('aria-label',label);}
   if(status==='saved')syncStatusTimer=setTimeout(()=>setSyncStatus(''),1500);
 }
+function clearRetryTimer(){clearTimeout(retryTimer);retryTimer=null;}
+function resetCloudSaveState(){
+  clearTimeout(saveTimer);saveTimer=null;
+  clearRetryTimer();
+  cloudSaveActive=false;cloudSavePending=false;retryStep=0;
+  saveAttempt++;
+}
+function showSyncFailure(error){
+  if(error)console.error('Sync error',error);
+  const dot=document.getElementById('sync-dot');
+  if(dot){dot.classList.remove('syncing');dot.classList.add('failed');}
+  setSyncStatus('failed');
+}
+function scheduleRetry(){
+  if(retryTimer||!currentUser||!cloudSavePending||!navigator.onLine)return;
+  const delay=retryStep===0?5000:retryStep===1?15000:30000;
+  retryStep++;
+  retryTimer=setTimeout(()=>{retryTimer=null;startCloudSave();},delay);
+}
+function startCloudSave(){
+  if(!currentUser||!cloudSavePending||cloudSaveActive)return;
+  clearRetryTimer();
+  cloudSaveActive=true;
+  cloudSavePending=false;
+  const userId=currentUser.uid;
+  const attempt=++saveAttempt;
+  const savedData=data;
+  const dot=document.getElementById('sync-dot');
+  if(dot)dot.classList.add('syncing');
+  setSyncStatus('syncing');
+  let timedOut=false;
+  const timeout=setTimeout(()=>{
+    if(attempt!==saveAttempt||!cloudSaveActive)return;
+    timedOut=true;
+    showSyncFailure();
+  },10000);
+  const finish=success=>{
+    if(attempt!==saveAttempt)return;
+    clearTimeout(timeout);
+    cloudSaveActive=false;
+    if(success){
+      retryStep=0;
+      clearRetryTimer();
+      if(cloudSavePending){startCloudSave();return;}
+      if(dot)dot.classList.remove('syncing','failed');
+      setSyncStatus('saved');
+      return;
+    }
+    cloudSavePending=true;
+    if(!timedOut)showSyncFailure();
+    scheduleRetry();
+  };
+  try{
+    Promise.resolve(window.fb.setDoc(window.fb.doc(window.fb.db,'users',userId),savedData)).then(()=>finish(true),error=>{if(attempt===saveAttempt)console.error('Sync error',error);finish(false);});
+  }catch(error){console.error('Sync error',error);finish(false);}
+}
+window.addEventListener('online',()=>{
+  if(!currentUser||(IS_LOCAL_MODE||forcedLocalChoice)&&!cloudSyncEnabled||(!cloudSavePending&&!cloudSaveActive))return;
+  clearRetryTimer();
+  setSyncStatus('syncing');
+  startCloudSave();
+});
 function save(){
   if(isLoadingFromCloud)return;
 
@@ -826,30 +889,10 @@ function save(){
     try{localStorage.setItem('dv-cache-'+currentUser.uid,JSON.stringify(data));}catch(e){}
     const dot=document.getElementById('sync-dot');
     if(dot)dot.classList.add('syncing');
+    cloudSavePending=true;
+    clearRetryTimer();
     clearTimeout(saveTimer);
-    saveTimer=setTimeout(async()=>{
-      setSyncStatus('syncing');
-      const attempt=++saveAttempt;
-      let completed=false;
-      const fail=error=>{
-        if(completed||attempt!==saveAttempt)return;
-        completed=true;
-        clearTimeout(timeout);
-        if(error)console.error('Sync error',error);
-        if(dot){dot.classList.remove('syncing');dot.classList.add('failed');}
-        setSyncStatus('failed');
-      };
-      const timeout=setTimeout(()=>fail(),10000);
-      try{
-        window.fb.setDoc(window.fb.doc(window.fb.db,'users',currentUser.uid),data).then(()=>{
-          if(completed||attempt!==saveAttempt)return;
-          completed=true;
-          clearTimeout(timeout);
-        if(dot)dot.classList.remove('syncing','failed');
-        setSyncStatus('saved');
-        },fail);
-      }catch(e){fail(e);}
-    },600);
+    saveTimer=setTimeout(startCloudSave,600);
   }
 }
 
@@ -891,6 +934,7 @@ window.doLogin=async function(){
 };
 window.doLogout=async function(){
   confirm2(t('confirm_logout'),async()=>{
+    resetCloudSaveState();
     if(IS_LOCAL_MODE){
       cloudSyncEnabled=false;
       localStorage.setItem('dv-cloud-enabled','0');
@@ -910,6 +954,7 @@ let forcedLocalChoice = localStorage.getItem('dv-forced-local')==='1';
 window.useLocallyInstead=function(){
   forcedLocalChoice=true;
   localStorage.setItem('dv-forced-local','1');
+  resetCloudSaveState();
   startLocalMode();
 };
 
@@ -926,6 +971,7 @@ window.enableCloudSync=async function(){
 };
 
 function startLocalMode(){
+  resetCloudSaveState();
   document.getElementById('login-screen').classList.add('app-hidden');
   document.getElementById('app-root').classList.remove('app-hidden');
   document.getElementById('local-badge').style.display='flex';
