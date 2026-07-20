@@ -790,6 +790,7 @@ let data={entries:[],payments:{},expenses:{},settings:{rate:0,lunch:30,start:'07
 let currentUser=null;
 let saveTimer=null;
 let syncStatus='',syncStatusTimer=null;
+let saveAttempt=0;
 let isLoadingFromCloud=false;
 
 let curMonth=new Date().getMonth(),curYear=new Date().getFullYear();
@@ -828,15 +829,26 @@ function save(){
     clearTimeout(saveTimer);
     saveTimer=setTimeout(async()=>{
       setSyncStatus('syncing');
-      try{
-        await window.fb.setDoc(window.fb.doc(window.fb.db,'users',currentUser.uid),data);
-        if(dot)dot.classList.remove('syncing','failed');
-        setSyncStatus('saved');
-      }catch(e){
-        console.error('Sync error',e);
+      const attempt=++saveAttempt;
+      let completed=false;
+      const fail=error=>{
+        if(completed||attempt!==saveAttempt)return;
+        completed=true;
+        clearTimeout(timeout);
+        if(error)console.error('Sync error',error);
         if(dot){dot.classList.remove('syncing');dot.classList.add('failed');}
         setSyncStatus('failed');
-      }
+      };
+      const timeout=setTimeout(()=>fail(),10000);
+      try{
+        window.fb.setDoc(window.fb.doc(window.fb.db,'users',currentUser.uid),data).then(()=>{
+          if(completed||attempt!==saveAttempt)return;
+          completed=true;
+          clearTimeout(timeout);
+        if(dot)dot.classList.remove('syncing','failed');
+        setSyncStatus('saved');
+        },fail);
+      }catch(e){fail(e);}
     },600);
   }
 }
