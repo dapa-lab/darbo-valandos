@@ -384,10 +384,6 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 @media (max-width:520px){.page{padding:12px 10px 82px}.card{padding:14px;border-radius:16px}.summary-grid{grid-template-columns:1fr 1fr;gap:8px}.stat{padding:11px;border-radius:14px}.stat-val{font-size:18px}.pay-row,.filter-dates,.filter-obj-row{gap:6px}.time-row,.data-actions{grid-template-columns:1fr;gap:10px}.data-actions .btn{min-height:44px}nav{position:fixed;left:10px;right:10px;bottom:10px;top:auto;border:1px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.22)}nav button{padding:9px 2px 8px}.user-bar{position:sticky;top:0;z-index:80}.login-box{padding:30px 22px}.cal-day{height:42px}.entry{padding:12px}.entry-actions{width:154px}.entry.swiped{transform:translateX(-154px)}}
 
-/* TEMPORARY ADD-OBJECT SCROLL DIAGNOSTICS — remove with ADD_OBJECT_SCROLL_DIAGNOSTICS. */
-#add-object-scroll-diagnostics{position:fixed;right:8px;bottom:max(8px,env(safe-area-inset-bottom));z-index:1000;max-width:calc(100vw - 16px);max-height:42vh;overflow:hidden;background:rgba(0,0,0,.88);border:1px solid #f59e0b;border-radius:8px;color:#fff;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:0;pointer-events:none;box-shadow:0 3px 12px rgba(0,0,0,.45);}
-#add-object-scroll-diagnostics strong{display:block;padding:6px 8px;background:#92400e;color:#fff;font-size:12px;}
-#add-object-scroll-diagnostics pre{margin:0;padding:6px 8px;white-space:pre-wrap;}
 /* #endregion Performance + Motion */
 </style>
 </head>
@@ -1104,6 +1100,7 @@ function confirmNo(){document.getElementById('confirm-bg').classList.remove('sho
 function showErrField(id){const el=document.getElementById(id);if(el){el.classList.add('err-field');setTimeout(()=>el.classList.remove('err-field'),2000);}}
 
 function showPage(id,btn){
+  if(id!=='prideti')removeObjectScrollSpacer('add');
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const navButtons=[...document.querySelectorAll('nav button')];
   navButtons.forEach(b=>b.classList.remove('active'));
@@ -1347,6 +1344,7 @@ function hasOverlap(date,newObjs,excludeId){
 
 // #region Time Entries
 function initObjBlocks(){
+  removeObjectScrollSpacer('add');
   const s=data.settings;
   objBlocks=[{obj:'',from:s.start||'07:00',to:s.end||'17:00',mult:null}];
   renderObjBlocks();updateTotalH();
@@ -1359,69 +1357,42 @@ function addObjBlock(){
   renderObjBlocks();updateTotalH();scrollNewAddObjectBlock(objBlocks.length-1);
 }
 
-// TEMPORARY ADD-OBJECT SCROLL DIAGNOSTICS — remove this constant and its calls after Android investigation.
-const ADD_OBJECT_SCROLL_DIAGNOSTICS=true;
-function reportAddObjectScrollDiagnostics(stage,newBlock,values={}){
-  if(!ADD_OBJECT_SCROLL_DIAGNOSTICS)return;
-  const userBar=document.getElementById('user-bar-cloud');
-  const userBarRect=userBar?.getBoundingClientRect();
-  const scrollingElement=document.scrollingElement;
-  const maxScrollTop=scrollingElement.scrollHeight-scrollingElement.clientHeight;
-  const currentScrollTop=scrollingElement.scrollTop;
-  const viewport=window.visualViewport;
-  const diagnostics={
-    stage,
-    'newBlock.getBoundingClientRect().top':newBlock.getBoundingClientRect().top,
-    'userBar.getBoundingClientRect().top':userBarRect?.top??null,
-    'userBar.getBoundingClientRect().bottom':userBarRect?.bottom??null,
-    'userBar.getBoundingClientRect().height':userBarRect?.height??null,
-    'window.scrollY':window.scrollY,
-    'document.documentElement.scrollTop':document.documentElement.scrollTop,
-    'document.body.scrollTop':document.body.scrollTop,
-    'document.scrollingElement.tagName':scrollingElement?.tagName??null,
-    'document.scrollingElement.scrollTop':scrollingElement?.scrollTop??null,
-    'document.scrollingElement.scrollHeight':scrollingElement.scrollHeight,
-    'document.scrollingElement.clientHeight':scrollingElement.clientHeight,
-    maxScrollTop,
-    currentScrollTop,
-    remainingScroll:maxScrollTop-currentScrollTop,
-    atMaximumScroll:Math.abs(maxScrollTop-currentScrollTop)<=2,
-    'document.body.scrollHeight':document.body.scrollHeight,
-    'newBlock top minus userBar bottom':userBarRect?newBlock.getBoundingClientRect().top-userBarRect.bottom:null,
-    'visualViewport.offsetTop':viewport?.offsetTop??null,
-    'visualViewport.height':viewport?.height??null,
-    'window.innerHeight':window.innerHeight,
-    'calculated delta':values.delta??null,
-    'calculated targetScrollTop':values.targetScrollTop??null,
-    'actual scrollTop after animation':values.actualScrollTopAfterAnimation??null,
-    'remaining correction after animation':values.remainingCorrectionAfterAnimation??null,
-    'activeElement.id':document.activeElement?.id??null
-  };
-  let panel=document.getElementById('add-object-scroll-diagnostics');
-  if(!panel){
-    panel=document.createElement('div');
-    panel.id='add-object-scroll-diagnostics';
-    panel.setAttribute('aria-hidden','true');
-    panel.innerHTML='<strong>Add object scroll diagnostics</strong><pre></pre>';
-    document.body.appendChild(panel);
-  }
-  panel.querySelector('pre').textContent=Object.entries(diagnostics).map(([key,value])=>`${key}: ${value}`).join('\n');
-  console.log(`[Add object scroll diagnostics] ${stage}`,diagnostics);
-}
+const objectScrollCleanup={};
+function removeObjectScrollSpacer(pfx){objectScrollCleanup[pfx]?.();}
 function scrollNewAddObjectBlock(i){scrollNewObjectBlock('add',i);}
 function scrollNewObjectBlock(pfx,i){
   const newBlock=document.getElementById(`${pfx}-ob-${i}`);
   const newInput=document.getElementById(`${pfx}-obj-${i}`);
   if(!newBlock||!newInput)return;
-  const diagnose=(stage,values)=>{if(pfx==='add')reportAddObjectScrollDiagnostics(stage,newBlock,values);};
-  let diagnosticValues={};
-  diagnose('immediately after rendering the new block');
+  const modal=newBlock.closest('.modal');
+  const scroller=modal||document.scrollingElement||document.documentElement;
+  const spacerId=`${pfx}-object-scroll-spacer`;
+  const spacerHost=modal||document.querySelector('#page-prideti .card');
+  removeObjectScrollSpacer(pfx);
+  const removeSpacer=()=>{
+    const spacer=document.getElementById(spacerId);
+    if(spacer)spacer.remove();
+    window.visualViewport?.removeEventListener('resize',onViewportResize);
+    if(objectScrollCleanup[pfx]===removeSpacer)delete objectScrollCleanup[pfx];
+  };
+  const onViewportResize=()=>{
+    if(!newBlock.contains(document.activeElement)||window.visualViewport?.height>=window.innerHeight-80)removeSpacer();
+  };
+  const ensureSpacer=delta=>{
+    const maxScrollTop=scroller.scrollHeight-scroller.clientHeight;
+    const remainingScroll=maxScrollTop-scroller.scrollTop;
+    if(delta<=remainingScroll)return;
+    let spacer=document.getElementById(spacerId);
+    if(!spacer){spacer=document.createElement('div');spacer.id=spacerId;spacer.setAttribute('aria-hidden','true');spacerHost.appendChild(spacer);}
+    spacer.style.height=Math.ceil(delta-remainingScroll+2)+'px';
+    void scroller.scrollHeight;
+  };
+  objectScrollCleanup[pfx]=removeSpacer;
   const animate=(from,to,setScroll,finish)=>{
     const duration=250,start=performance.now(),distance=to-from;
     const frame=now=>{
       const progress=Math.min((now-start)/duration,1),eased=1-Math.pow(1-progress,3);
       setScroll(from+distance*eased);
-      diagnose('animation frame',diagnosticValues);
       if(progress<1)requestAnimationFrame(frame);
       else{setScroll(to);finish();}
     };
@@ -1446,83 +1417,23 @@ function scrollNewObjectBlock(pfx,i){
     onViewportChange();fallbackTimer=setTimeout(done,fallback);
   };
   newInput.focus({preventScroll:true});
-  diagnose('immediately after focusing the input');
+  newInput.addEventListener('blur',()=>setTimeout(()=>{if(!newBlock.contains(document.activeElement))removeSpacer();},0),{once:true});
+  window.visualViewport?.addEventListener('resize',onViewportResize);
   waitForViewportSettle(()=>{
-    diagnose('after the viewport settles');
-    const modal=newBlock.closest('.modal');
-    const getMainDelta=()=>{
+    const targetTop=()=>{
+      if(modal)return modal.getBoundingClientRect().top;
       const userBar=document.getElementById('user-bar-cloud');
-      const userBarRect=userBar?.getBoundingClientRect();
-      const targetTop=userBar&&userBar.offsetParent!==null&&getComputedStyle(userBar).position==='sticky'
-        ?userBarRect.bottom
-        :0;
-      return newBlock.getBoundingClientRect().top-targetTop;
+      return userBar&&userBar.offsetParent!==null&&getComputedStyle(userBar).position==='sticky'
+        ?userBar.getBoundingClientRect().bottom : 0;
     };
-    const correct=()=>{
-      const correction=modal
-        ?newBlock.getBoundingClientRect().top-modal.getBoundingClientRect().top
-        :getMainDelta();
-      if(Math.abs(correction)>2){
-        if(modal)modal.scrollTop+=correction;
-        else (document.scrollingElement||document.documentElement).scrollTop+=correction;
-        return true;
-      }
-      return false;
-    };
-    const watchForViewportPan=(maxCorrections,corrections=0)=>{
-      const viewport=window.visualViewport;
-      if(!viewport||corrections>=maxCorrections)return;
-      let settleTimer,endTimer,changed=false;
-      const cleanup=()=>{
-        viewport.removeEventListener('resize',onViewportChange);
-        viewport.removeEventListener('scroll',onViewportChange);
-        clearTimeout(settleTimer);clearTimeout(endTimer);
-      };
-      const onViewportChange=()=>{
-        changed=true;clearTimeout(settleTimer);
-        settleTimer=setTimeout(()=>{
-          if(!changed)return;
-          cleanup();
-          if(correct())watchForViewportPan(maxCorrections,corrections+1);
-        },150);
-      };
-      viewport.addEventListener('resize',onViewportChange);
-      viewport.addEventListener('scroll',onViewportChange);
-      endTimer=setTimeout(cleanup,700);
-    };
-    if(modal){
-      const delta=newBlock.getBoundingClientRect().top-modal.getBoundingClientRect().top;
-      const targetScrollTop=modal.scrollTop+delta;
-      diagnosticValues={delta,targetScrollTop};
-      diagnose('before starting the scroll',diagnosticValues);
-      animate(modal.scrollTop,targetScrollTop,value=>{modal.scrollTop=value;},()=>{
-        const remainingCorrection=newBlock.getBoundingClientRect().top-modal.getBoundingClientRect().top;
-        const animationValues={delta,targetScrollTop,actualScrollTopAfterAnimation:modal.scrollTop,remainingCorrectionAfterAnimation:remainingCorrection};
-        diagnosticValues=animationValues;
-        diagnose('immediately after animation',animationValues);
-        setTimeout(()=>diagnose('200 ms after animation',animationValues),200);
-        setTimeout(()=>diagnose('700 ms after animation',animationValues),700);
-        requestAnimationFrame(()=>requestAnimationFrame(()=>{
-          correct();watchForViewportPan(1);
-        }));
-      });
-      return;
-    }
-
-    const scroller=document.scrollingElement||document.documentElement;
-    const delta=getMainDelta();
-    const targetScrollTop=Math.max(0,scroller.scrollTop+delta);
-    diagnosticValues={delta,targetScrollTop};
-    diagnose('before starting the scroll',diagnosticValues);
+    let delta=newBlock.getBoundingClientRect().top-targetTop();
+    ensureSpacer(delta);
+    delta=newBlock.getBoundingClientRect().top-targetTop();
+    const targetScrollTop=Math.max(0,Math.min(scroller.scrollHeight-scroller.clientHeight,scroller.scrollTop+delta));
     animate(scroller.scrollTop,targetScrollTop,value=>{scroller.scrollTop=value;},()=>{
-      const remainingCorrection=getMainDelta();
-      const animationValues={delta,targetScrollTop,actualScrollTopAfterAnimation:scroller.scrollTop,remainingCorrectionAfterAnimation:remainingCorrection};
-      diagnosticValues=animationValues;
-      diagnose('immediately after animation',animationValues);
-      setTimeout(()=>diagnose('200 ms after animation',animationValues),200);
-      setTimeout(()=>diagnose('700 ms after animation',animationValues),700);
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
-        const corrected=correct();watchForViewportPan(3,corrected?1:0);
+        const correction=newBlock.getBoundingClientRect().top-targetTop();
+        if(Math.abs(correction)>2)scroller.scrollTop+=correction;
       }));
     });
   });
@@ -1953,7 +1864,7 @@ function openEdit(id){
   renderEditBlocks();
   document.getElementById('edit-modal').classList.add('show');
 }
-function closeEdit(){document.getElementById('edit-modal').classList.remove('show');editId=null;}
+function closeEdit(){removeObjectScrollSpacer('edit');document.getElementById('edit-modal').classList.remove('show');editId=null;}
 
 window.editBlocks=editBlocks;
 function renderEditBlocks(){
