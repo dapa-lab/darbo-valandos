@@ -1360,54 +1360,41 @@ function scrollNewObjectBlock(pfx,i){
     const newInput=document.getElementById(`${pfx}-obj-${i}`);
     if(!newBlock)return;
     const modalScrollContainer=newBlock.closest('.modal');
-    newInput?.focus({preventScroll:true});
-    const viewport=window.visualViewport;
-    let stableFrames=0,started=performance.now(),lastHeight,lastOffset;
-    const waitForStableViewport=()=>{
-      const height=viewport?viewport.height:window.innerHeight;
-      const offset=viewport?viewport.offsetTop:0;
-      stableFrames=height===lastHeight&&offset===lastOffset?stableFrames+1:0;
-      lastHeight=height;lastOffset=offset;
-      if(stableFrames<4&&performance.now()-started<800){requestAnimationFrame(waitForStableViewport);return;}
-
-      const animate=(from,to,setScroll,finish)=>{
-        const duration=250,start=performance.now(),distance=to-from;
-        const frame=now=>{
-          const progress=Math.min((now-start)/duration,1),eased=1-Math.pow(1-progress,3);
-          setScroll(from+distance*eased);
-          if(progress<1)requestAnimationFrame(frame);
-          else{setScroll(to);finish();}
-        };
-        requestAnimationFrame(frame);
+    const animate=(from,to,setScroll,finish)=>{
+      const duration=250,start=performance.now(),distance=to-from;
+      const frame=now=>{
+        const progress=Math.min((now-start)/duration,1),eased=1-Math.pow(1-progress,3);
+        setScroll(from+distance*eased);
+        if(progress<1)requestAnimationFrame(frame);
+        else{setScroll(to);finish();}
       };
-      if(modalScrollContainer){
-        const modalRect=modalScrollContainer.getBoundingClientRect();
-        const currentScrollTop=modalScrollContainer.scrollTop;
-        const targetScrollTop=Math.max(0,Math.min(modalScrollContainer.scrollHeight-modalScrollContainer.clientHeight,
-          currentScrollTop+newBlock.getBoundingClientRect().top-modalRect.top));
-        animate(currentScrollTop,targetScrollTop,value=>{modalScrollContainer.scrollTop=value;},()=>{
-          const correction=newBlock.getBoundingClientRect().top-modalScrollContainer.getBoundingClientRect().top;
-          if(Math.abs(correction)>2)modalScrollContainer.scrollTop+=correction;
-        });
-        return;
-      }
-
-      const visibleTop=viewport?viewport.offsetTop:0;
-      const userBar=document.getElementById('user-bar-cloud');
-      const userBarRect=userBar?.getBoundingClientRect();
-      const visibleBottom=visibleTop+(viewport?viewport.height:window.innerHeight);
-      const targetTop=userBar?.offsetParent!==null&&userBarRect&&userBarRect.bottom>visibleTop&&userBarRect.top<visibleBottom
-        ?userBarRect.bottom:visibleTop;
-      const currentScrollY=window.scrollY;
-      const delta=newBlock.getBoundingClientRect().top-targetTop;
-      const targetScrollY=Math.max(0,Math.min(document.documentElement.scrollHeight-window.innerHeight,
-        currentScrollY+delta));
-      animate(currentScrollY,targetScrollY,value=>window.scrollTo(0,value),()=>{
-        const correction=newBlock.getBoundingClientRect().top-targetTop;
-        if(Math.abs(correction)>2)window.scrollTo(0,window.scrollY+correction);
-      });
+      requestAnimationFrame(frame);
     };
-    requestAnimationFrame(waitForStableViewport);
+    if(modalScrollContainer){
+      const modalRect=modalScrollContainer.getBoundingClientRect();
+      const blockRect=newBlock.getBoundingClientRect();
+      const targetScrollTop=modalScrollContainer.scrollTop+blockRect.top-modalRect.top;
+      animate(modalScrollContainer.scrollTop,targetScrollTop,value=>{modalScrollContainer.scrollTop=value;},()=>{
+        const correction=newBlock.getBoundingClientRect().top-modalScrollContainer.getBoundingClientRect().top;
+        if(Math.abs(correction)>2)modalScrollContainer.scrollBy(0,correction);
+        newInput?.focus({preventScroll:true});
+      });
+      return;
+    }
+
+    const userBar=document.getElementById('user-bar-cloud');
+    const userBarRect=userBar?.getBoundingClientRect();
+    const targetTop=userBar&&userBar.offsetParent!==null&&getComputedStyle(userBar).position==='sticky'&&userBarRect.bottom>0
+      ?userBarRect.bottom:0;
+    const blockTop=newBlock.getBoundingClientRect().top;
+    const targetScrollY=window.scrollY+blockTop-targetTop;
+    const finalTarget=Math.max(0,targetScrollY);
+    animate(window.scrollY,finalTarget,value=>window.scrollTo(0,value),()=>{
+      window.scrollTo(0,finalTarget);
+      const correction=newBlock.getBoundingClientRect().top-targetTop;
+      if(Math.abs(correction)>2)window.scrollBy(0,correction);
+      newInput?.focus({preventScroll:true});
+    });
   });
 }
 function removeObjBlock(i){objBlocks.splice(i,1);renderObjBlocks();updateTotalH();}
