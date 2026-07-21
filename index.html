@@ -792,6 +792,7 @@ let saveTimer=null;
 let saveAttempt=0;
 let cloudSaveActive=false,cloudSavePending=false,retryTimer=null,retryStep=0;
 let isLoadingFromCloud=false;
+let baseRevision=0;
 
 let curMonth=new Date().getMonth(),curYear=new Date().getFullYear();
 let rangeMonth=new Date().getMonth(),rangeYear=new Date().getFullYear(),rangeDraftStart='',rangeDraftFrom='',rangeDraftTo='';
@@ -805,6 +806,19 @@ function t(k){return(LANGS[data.settings.lang]||LANGS.lt)[k]||k;}
 
 // #region Storage
 function withoutSync(value){const payload=Object.assign({},value||{});delete payload._sync;return payload;}
+function syncMetaKey(uid){return 'dv-sync-meta-'+uid;}
+function revisionOf(sync){return sync&&Number.isFinite(sync.revision)&&sync.revision>=0?Math.floor(sync.revision):0;}
+function loadBaseRevision(uid){try{const meta=JSON.parse(localStorage.getItem(syncMetaKey(uid)));return meta&&Number.isFinite(meta.baseRevision)&&meta.baseRevision>=0?Math.floor(meta.baseRevision):0;}catch(e){return 0;}}
+function persistBaseRevision(uid,revision){baseRevision=revision;try{localStorage.setItem(syncMetaKey(uid),JSON.stringify({baseRevision:revision}));}catch(e){}}
+function deviceId(){
+  const key='dv-sync-device-id';
+  try{
+    const stored=localStorage.getItem(key);if(stored)return stored;
+    const id=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():(typeof crypto!=='undefined'&&crypto.getRandomValues?Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join(''):`${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
+    localStorage.setItem(key,id);return id;
+  }catch(e){return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;}
+}
+function cloudWriteData(value,revision){return Object.assign({},withoutSync(value),{_sync:{revision,updatedAt:Date.now(),deviceId:deviceId()}});}
 function setSyncDotState(state){
   const dot=document.getElementById('sync-dot');
   if(!dot)return;
@@ -840,6 +854,7 @@ function startCloudSave(forceRetry=false){
   const userId=currentUser.uid;
   const attempt=++saveAttempt;
   const savedData=data;
+  const nextRevision=baseRevision+1;
   setSyncDotState('syncing');
   let timedOut=false;
   const timeout=setTimeout(()=>{
@@ -855,6 +870,7 @@ function startCloudSave(forceRetry=false){
     clearTimeout(timeout);
     cloudSaveActive=false;
     if(success){
+      if(!timedOut)persistBaseRevision(userId,nextRevision);
       retryStep=0;
       clearRetryTimer();
       if(cloudSavePending){startCloudSave();return;}
@@ -871,7 +887,7 @@ function startCloudSave(forceRetry=false){
     scheduleRetry();
   };
   try{
-    Promise.resolve(window.fb.setDoc(window.fb.doc(window.fb.db,'users',userId),savedData)).then(()=>finish(true),error=>{if(attempt===saveAttempt)console.error('Sync error',error);finish(false);});
+    Promise.resolve(window.fb.setDoc(window.fb.doc(window.fb.db,'users',userId),cloudWriteData(savedData,nextRevision))).then(()=>finish(true),error=>{if(attempt===saveAttempt)console.error('Sync error',error);finish(false);});
   }catch(error){console.error('Sync error',error);finish(false);}
 }
 window.addEventListener('online',()=>{
@@ -899,13 +915,13 @@ function save(){
 
   // Pure local mode (no cloud sync enabled) — save only to local key, no Firestore at all
   if(IS_LOCAL_MODE && !currentUser){
-    try{localStorage.setItem('dv-local-data',JSON.stringify(data));}catch(e){}
+    try{localStorage.setItem('dv-local-data',JSON.stringify(withoutSync(data)));}catch(e){}
     return;
   }
 
   // Cloud mode — cache locally for snappy reload + sync to Firestore
   if(currentUser){
-    try{localStorage.setItem('dv-cache-'+currentUser.uid,JSON.stringify(data));}catch(e){}
+    try{localStorage.setItem('dv-cache-'+currentUser.uid,JSON.stringify(withoutSync(data)));}catch(e){}
     setSyncDotState('syncing');
     cloudSavePending=true;
     clearRetryTimer();
@@ -999,7 +1015,7 @@ function startLocalMode(){
   document.getElementById('sync-cloud-block').style.display='none';
   try{
     const cached=localStorage.getItem('dv-local-data');
-    data=mergeDefaults(cached?JSON.parse(cached):{});
+    data=mergeDefaults(withoutSync(cached?JSON.parse(cached):{}));
   }catch(e){data=mergeDefaults({});}
   initAppUI();
 }
@@ -1032,6 +1048,7 @@ window.onFbAuthChange=async function(user){
   }
 
   if(user){
+    baseRevision=loadBaseRevision(user.uid);
     document.getElementById('login-screen').classList.add('app-hidden');
     document.getElementById('app-root').classList.remove('app-hidden');
     document.getElementById('local-badge').style.display='none';
@@ -1059,12 +1076,16 @@ window.onFbAuthChange=async function(user){
       const snap=await window.fb.getDoc(window.fb.doc(window.fb.db,'users',user.uid));
       isLoadingFromCloud=true;
       if(snap.exists()){
-        data=mergeDefaults(withoutSync(snap.data()));
+        const remoteData=snap.data();
+        persistBaseRevision(user.uid,revisionOf(remoteData._sync));
+        data=mergeDefaults(withoutSync(remoteData));
       }else{
         // first time enabling cloud — migrate local data if present
         const localBackup=localStorage.getItem('dv-local-data');
-        data=mergeDefaults(localBackup?JSON.parse(localBackup):{});
-        await window.fb.setDoc(window.fb.doc(window.fb.db,'users',user.uid),data);
+        data=mergeDefaults(withoutSync(localBackup?JSON.parse(localBackup):{}));
+        persistBaseRevision(user.uid,0);
+        await window.fb.setDoc(window.fb.doc(window.fb.db,'users',user.uid),cloudWriteData(data,1));
+        persistBaseRevision(user.uid,1);
       }
       if(navigator.onLine)setSyncDotState('saved');
       isLoadingFromCloud=false;
@@ -2198,19 +2219,21 @@ function sendBugReport(){
 const BACKUP_APP_NAME='Darbo Valandos',BACKUP_SCHEMA_VERSION=1;
 function downloadJSON(value,filename){const b=new Blob([JSON.stringify(value,null,2)],{type:'application/json;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),0);}
 function backupFilename(){return `darbo-valandos-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;}
-function createBackup(showToast=true){downloadJSON({schemaVersion:BACKUP_SCHEMA_VERSION,createdAt:new Date().toISOString(),appName:BACKUP_APP_NAME,data},backupFilename());if(showToast)toast(t('backup_created'));}
+function createBackup(showToast=true){downloadJSON({schemaVersion:BACKUP_SCHEMA_VERSION,createdAt:new Date().toISOString(),appName:BACKUP_APP_NAME,data:withoutSync(data)},backupFilename());if(showToast)toast(t('backup_created'));}
 function isPlainObject(value){return value!==null&&typeof value==='object'&&!Array.isArray(value);}
 function validateBackup(backup){
   if(!isPlainObject(backup)||backup.appName!==BACKUP_APP_NAME||backup.schemaVersion!==BACKUP_SCHEMA_VERSION||typeof backup.createdAt!=='string'||Number.isNaN(Date.parse(backup.createdAt)))return null;
   const d=backup.data;
   if(!isPlainObject(d)||!Array.isArray(d.entries)||!isPlainObject(d.payments)||!isPlainObject(d.expenses)||!isPlainObject(d.bonuses)||!isPlainObject(d.settings))return null;
-  return d;
+  return withoutSync(d);
 }
 async function saveRestoredBackup(restored){
   if(IS_LOCAL_MODE&&!currentUser){localStorage.setItem('dv-local-data',JSON.stringify(restored));return;}
   if(!currentUser)throw new Error('No storage destination');
-  await window.fb.setDoc(window.fb.doc(window.fb.db,'users',currentUser.uid),restored);
-  try{localStorage.setItem('dv-cache-'+currentUser.uid,JSON.stringify(restored));}catch(e){}
+  const nextRevision=baseRevision+1;
+  await window.fb.setDoc(window.fb.doc(window.fb.db,'users',currentUser.uid),cloudWriteData(restored,nextRevision));
+  persistBaseRevision(currentUser.uid,nextRevision);
+  try{localStorage.setItem('dv-cache-'+currentUser.uid,JSON.stringify(withoutSync(restored)));}catch(e){}
 }
 function restoreBackup(input){
   const file=input.files&&input.files[0];input.value='';
@@ -2232,10 +2255,10 @@ function restoreBackup(input){
   };
   reader.readAsText(file,'UTF-8');
 }
-function exportData(){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.json';a.click();}
+function exportData(){const b=new Blob([JSON.stringify(withoutSync(data),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.json';a.click();}
 function csvField(v){const s=v==null?'':String(v);return /[",;\n\r]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}
 function exportCSV(){const rows=[['Data','Objektas','Nuo','Iki','Valandos','Mult','Vairavau','Komentaras']];data.entries.forEach(e=>(e.objs||[]).forEach(o=>rows.push([e.date,o.obj,o.from||'',o.to||'',o.hours,o.mult||'',e.drive?'Taip':'',e.comment||''])));const b=new Blob(['\uFEFF'+rows.map(r=>r.map(csvField).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.csv';a.click();}
-function importData(input){const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{data=JSON.parse(e.target.result);save();applyTheme();loadSettings();renderEntries();renderFinances();applyI18n();toast(t('saved_imported'));}catch{toast(t('err_import'),true);}};r.readAsText(file);}
+function importData(input){const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{data=withoutSync(JSON.parse(e.target.result));save();applyTheme();loadSettings();renderEntries();renderFinances();applyI18n();toast(t('saved_imported'));}catch{toast(t('err_import'),true);}};r.readAsText(file);}
 </script>
 </div>
 </body>
