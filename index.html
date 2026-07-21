@@ -209,6 +209,8 @@ textarea{resize:vertical;min-height:52px;}
 .vacation-edit-wrap.editing #vacation-edit-btn{display:none;}
 .vacation-edit-wrap input[readonly]{opacity:.78;cursor:default;}
 .s-label{font-size:14px;}.s-desc{font-size:12px;color:var(--text2);margin-top:2px;}
+.diagnostics-row{display:block;font-size:11px;line-height:1.5;color:var(--text2);}
+.diagnostics-row pre{font:inherit;margin:0 0 8px;white-space:pre-wrap;overflow-wrap:anywhere;}
 .lang-row{display:flex;gap:8px;margin-top:4px;}
 .lang-btn{flex:1;border:2px solid var(--border);border-radius:7px;padding:8px;cursor:pointer;text-align:center;font-size:13px;font-weight:700;background:var(--surface2);color:var(--text2);transition:.2s;}
 .lang-btn.active{border-color:var(--accent);color:var(--accent);}
@@ -586,6 +588,10 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     <div class="card-title" data-i="set_bug">Pagalba</div>
     <button class="btn btn-ghost" style="width:100%" onclick="openBugReport()" data-i="bug_report_btn">🐞 Pranešti apie klaidą</button>
   </div>
+  <div class="card diagnostics-row">
+    <pre id="sync-diagnostics"></pre>
+    <button class="btn btn-ghost btn-sm" onclick="copyDiagnostics()">Copy diagnostics</button>
+  </div>
 </div>
 
 <!-- BUG REPORT MODAL -->
@@ -875,6 +881,7 @@ function startCloudSave(forceRetry=false){
   }catch(error){console.error('Sync error',error);finish(false);}
 }
 window.addEventListener('online',()=>{
+  updateDiagnostics();
   if(!currentUser||(IS_LOCAL_MODE||forcedLocalChoice)&&!cloudSyncEnabled)return;
   clearRetryTimer();
   if(cloudSavePending||cloudSaveActive){
@@ -885,6 +892,7 @@ window.addEventListener('online',()=>{
   }else setSyncDotState('saved');
 });
 window.addEventListener('offline',()=>{
+  updateDiagnostics();
   clearRetryTimer();
   if(cloudSaveActive){
     cloudSaveActive=false;
@@ -1228,6 +1236,23 @@ function loadSettings(){
   }
   document.getElementById('set-start-holder').innerHTML=time24Picker('set-start',s.start||'07:00','settings',0,'start');
   document.getElementById('set-end-holder').innerHTML=time24Picker('set-end',s.end||'17:00','settings',0,'end');
+  updateDiagnostics();
+}
+function diagnosticsText(){
+  let sync=data._sync||{};
+  try{sync=JSON.parse(localStorage.getItem('dv-cache-'+currentUser?.uid)||'null')||sync;}catch(e){}
+  return `UID: ${currentUser?.uid||'—'}\nRevision: ${sync.baseRevision??sync.revision??0}\nDevice: ${sync.deviceId||localStorage.getItem('dv-device-id')||'—'}\nNetwork: ${navigator.onLine?'Online':'Offline'}`;
+}
+function updateDiagnostics(){
+  const el=document.getElementById('sync-diagnostics');
+  if(el)el.textContent=diagnosticsText();
+}
+async function copyDiagnostics(){
+  const text=diagnosticsText();
+  try{await navigator.clipboard.writeText(text);}catch(e){
+    const input=document.createElement('textarea');
+    input.value=text;document.body.append(input);input.select();document.execCommand('copy');input.remove();
+  }
 }
 function saveSettings(){
   resetVacationEditUi();
