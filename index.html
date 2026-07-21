@@ -264,9 +264,12 @@ textarea{resize:vertical;min-height:52px;}
 .user-bar img{width:24px;height:24px;border-radius:50%;}
 .user-bar .ub-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .user-bar button{background:none;border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text2);flex-shrink:0;}
 .sync-status{max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1;font-size:11px;font-weight:600;}
 .sync-dot.failed{background:var(--danger);}
+.sync-dot.offline{background:var(--danger);}
+.sync-dot.saved{background:var(--success);}
+.sync-dot.pending{background:var(--text2);}
 .local-badge{position:absolute;top:6px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;z-index:95;cursor:pointer;}
 .local-badge-cloud{display:flex;align-items:center;justify-content:center;color:var(--text2);}
 .local-badge-slash{position:absolute;width:20px;height:2px;background:var(--danger);transform:rotate(-45deg);border-radius:2px;}
@@ -692,7 +695,7 @@ const LANGS={
     set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',set_vacation_balance:'Atostogų likutis',rate_unit:'€/val',btn_edit_vacation:'Redaguoti',btn_confirm:'Patvirtinti',confirm_vacation_update:'Ar norite atnaujinti atostogų valandų skaičiavimą?',confirm_vacation_only:'Atostogos turi būti vienintelis objektas šiame įraše. Pašalinti kitus objektus?',
     rate_hint_text:'👋 Sveiki! Pirmiausia įveskite savo valandinį atlygį.',
     set_start:'Pradžios laikas',set_end:'Pabaigos laikas',set_theme:'Tema',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Kalba',
-    set_data:'Duomenys',set_import:'Importuoti',set_sync:'Saugojimas',sync_active:'Prisijungta debesyje',sync_syncing:'Išsaugoma',sync_saved:'Išsaugota',sync_failed:'Nepavyko',backup_create:'💾 Kurti atsarginę kopiją',backup_restore:'↩️ Atkurti atsarginę kopiją',backup_created:'✓ Atsarginė kopija atsisiųsta',backup_restored:'✓ Atsarginė kopija atkurta',backup_invalid:'⚠️ Netinkama atsarginės kopijos byla',backup_restore_confirm:'Atstatymas pakeis visus dabartinius duomenis. Prieš tęsiant bus atsisiųsta atsarginė kopija. Tęsti?',backup_restore_yes:'Atkurti',backup_restore_failed:'⚠️ Nepavyko atkurti atsarginės kopijos',
+    set_data:'Duomenys',set_import:'Importuoti',set_sync:'Saugojimas',sync_active:'Prisijungta debesyje',sync_syncing:'Išsaugoma',sync_saved:'Išsaugota',sync_failed:'Nepavyko',sync_offline:'Nėra interneto',backup_create:'💾 Kurti atsarginę kopiją',backup_restore:'↩️ Atkurti atsarginę kopiją',backup_created:'✓ Atsarginė kopija atsisiųsta',backup_restored:'✓ Atsarginė kopija atkurta',backup_invalid:'⚠️ Netinkama atsarginės kopijos byla',backup_restore_confirm:'Atstatymas pakeis visus dabartinius duomenis. Prieš tęsiant bus atsisiųsta atsarginė kopija. Tęsti?',backup_restore_yes:'Atkurti',backup_restore_failed:'⚠️ Nepavyko atkurti atsarginės kopijos',
     set_bug:'Pagalba',bug_report_btn:'🐞 Pranešti apie klaidą',bug_modal_title:'Pranešti apie klaidą',bug_desc_label:'Aprašykite klaidą',bug_desc_ph:'Kas neveikia ar kas atsitiko?',bug_send_btn:'📧 Siųsti',bug_empty_err:'Įveskite aprašymą',bug_sent_msg:'✓ Atidaromas pašto klientas',
     pay_date:'Data',pay_amount:'Suma €',pay_comment:'Komentaras',
     exp_date:'Data',exp_amount:'Suma €',exp_desc:'Aprašymas',exp_desc_ph:'Už ką?',
@@ -724,7 +727,7 @@ const LANGS={
     set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',set_vacation_balance:'Vacation balance',rate_unit:'€/hr',btn_edit_vacation:'Edit',btn_confirm:'Confirm',confirm_vacation_update:'Do you want to update vacation hours calculation?',confirm_vacation_only:'Vacation must be the only object in this entry. Remove other objects?',
     rate_hint_text:'👋 Welcome! First, enter your hourly rate.',
     set_start:'Start time',set_end:'End time',set_theme:'Theme',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Language',
-    set_data:'Data',set_import:'Import',set_sync:'Storage',sync_active:'synced to cloud',sync_syncing:'Syncing',sync_saved:'Saved',sync_failed:'Failed',backup_create:'💾 Create backup',backup_restore:'↩️ Restore backup',backup_created:'✓ Backup downloaded',backup_restored:'✓ Backup restored',backup_invalid:'⚠️ Invalid backup file',backup_restore_confirm:'Restoring will replace all current data. A backup of the current data will be downloaded first. Continue?',backup_restore_yes:'Restore',backup_restore_failed:'⚠️ Backup restore failed',
+    set_data:'Data',set_import:'Import',set_sync:'Storage',sync_active:'synced to cloud',sync_syncing:'Syncing',sync_saved:'Saved',sync_failed:'Failed',sync_offline:'Offline',backup_create:'💾 Create backup',backup_restore:'↩️ Restore backup',backup_created:'✓ Backup downloaded',backup_restored:'✓ Backup restored',backup_invalid:'⚠️ Invalid backup file',backup_restore_confirm:'Restoring will replace all current data. A backup of the current data will be downloaded first. Continue?',backup_restore_yes:'Restore',backup_restore_failed:'⚠️ Backup restore failed',
     set_bug:'Support',bug_report_btn:'🐞 Report a bug',bug_modal_title:'Report a bug',bug_desc_label:'Describe the issue',bug_desc_ph:'What happened or isn\'t working?',bug_send_btn:'📧 Send',bug_empty_err:'Please enter a description',bug_sent_msg:'✓ Opening mail client',
     pay_date:'Date',pay_amount:'Amount €',pay_comment:'Comment',
     exp_date:'Date',exp_amount:'Amount €',exp_desc:'Description',exp_desc_ph:'For what?',
@@ -756,7 +759,7 @@ const LANGS={
     set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',set_vacation_balance:'Остаток отпуска',rate_unit:'€/ч',btn_edit_vacation:'Редактировать',btn_confirm:'Подтвердить',confirm_vacation_update:'Хотите обновить расчет отпускных часов?',confirm_vacation_only:'Отпуск должен быть единственным объектом в этой записи. Удалить другие объекты?',
     rate_hint_text:'👋 Добро пожаловать! Сначала введите свою почасовую ставку.',
     set_start:'Начало работы',set_end:'Конец работы',set_theme:'Тема',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Язык',
-    set_data:'Данные',set_import:'Импорт',set_sync:'Хранение',sync_active:'синхронизировано с облаком',sync_syncing:'Синхронизация',sync_saved:'Сохранено',sync_failed:'Ошибка',backup_create:'💾 Создать резервную копию',backup_restore:'↩️ Восстановить резервную копию',backup_created:'✓ Резервная копия скачана',backup_restored:'✓ Резервная копия восстановлена',backup_invalid:'⚠️ Недопустимый файл резервной копии',backup_restore_confirm:'Восстановление заменит все текущие данные. Сначала будет скачана резервная копия. Продолжить?',backup_restore_yes:'Восстановить',backup_restore_failed:'⚠️ Не удалось восстановить резервную копию',
+    set_data:'Данные',set_import:'Импорт',set_sync:'Хранение',sync_active:'синхронизировано с облаком',sync_syncing:'Синхронизация',sync_saved:'Сохранено',sync_failed:'Ошибка',sync_offline:'Нет интернета',backup_create:'💾 Создать резервную копию',backup_restore:'↩️ Восстановить резервную копию',backup_created:'✓ Резервная копия скачана',backup_restored:'✓ Резервная копия восстановлена',backup_invalid:'⚠️ Недопустимый файл резервной копии',backup_restore_confirm:'Восстановление заменит все текущие данные. Сначала будет скачана резервная копия. Продолжить?',backup_restore_yes:'Восстановить',backup_restore_failed:'⚠️ Не удалось восстановить резервную копию',
     set_bug:'Поддержка',bug_report_btn:'🐞 Сообщить об ошибке',bug_modal_title:'Сообщить об ошибке',bug_desc_label:'Опишите проблему',bug_desc_ph:'Что не работает или произошло?',bug_send_btn:'📧 Отправить',bug_empty_err:'Введите описание',bug_sent_msg:'✓ Открывается почтовый клиент',
     pay_date:'Дата',pay_amount:'Сумма €',pay_comment:'Комментарий',
     exp_date:'Дата',exp_amount:'Сумма €',exp_desc:'Описание',exp_desc_ph:'За что?',
@@ -813,6 +816,15 @@ function setSyncStatus(status){
   if(el){const label=status?t('sync_'+status):'';el.textContent=label;el.title=label;el.setAttribute('aria-label',label);}
   if(status==='saved')syncStatusTimer=setTimeout(()=>setSyncStatus(''),1500);
 }
+function setSyncDotState(state){
+  const dot=document.getElementById('sync-dot');
+  if(!dot)return;
+  dot.classList.remove('syncing','saved','failed','offline','pending');
+  if(state)dot.classList.add(state);
+  const label=state==='offline'?t('sync_offline'):state?t('sync_'+state):'';
+  dot.title=label;
+  dot.setAttribute('aria-label',label);
+}
 function clearRetryTimer(){clearTimeout(retryTimer);retryTimer=null;}
 function resetCloudSaveState(){
   clearTimeout(saveTimer);saveTimer=null;
@@ -822,8 +834,7 @@ function resetCloudSaveState(){
 }
 function showSyncFailure(error){
   if(error)console.error('Sync error',error);
-  const dot=document.getElementById('sync-dot');
-  if(dot){dot.classList.remove('syncing');dot.classList.add('failed');}
+  setSyncDotState('failed');
   setSyncStatus('failed');
 }
 function scheduleRetry(){
@@ -840,8 +851,7 @@ function startCloudSave(forceRetry=false){
   const userId=currentUser.uid;
   const attempt=++saveAttempt;
   const savedData=data;
-  const dot=document.getElementById('sync-dot');
-  if(dot)dot.classList.add('syncing');
+  setSyncDotState('syncing');
   setSyncStatus('syncing');
   let timedOut=false;
   const timeout=setTimeout(()=>{
@@ -860,7 +870,12 @@ function startCloudSave(forceRetry=false){
       retryStep=0;
       clearRetryTimer();
       if(cloudSavePending){startCloudSave();return;}
-      if(dot)dot.classList.remove('syncing','failed');
+      if(!navigator.onLine){
+        cloudSavePending=true;
+        setSyncDotState('offline');
+        return;
+      }
+      setSyncDotState('saved');
       setSyncStatus('saved');
       return;
     }
@@ -877,6 +892,10 @@ window.addEventListener('online',()=>{
   clearRetryTimer();
   startCloudSave(true);
 });
+window.addEventListener('offline',()=>{
+  setSyncDotState('offline');
+});
+if(!navigator.onLine)setSyncDotState('offline');
 function save(){
   if(isLoadingFromCloud)return;
 
@@ -889,8 +908,8 @@ function save(){
   // Cloud mode — cache locally for snappy reload + sync to Firestore
   if(currentUser){
     try{localStorage.setItem('dv-cache-'+currentUser.uid,JSON.stringify(data));}catch(e){}
-    const dot=document.getElementById('sync-dot');
-    if(dot)dot.classList.add('syncing');
+    setSyncDotState('syncing');
+    setSyncStatus('syncing');
     cloudSavePending=true;
     clearRetryTimer();
     clearTimeout(saveTimer);
@@ -1050,6 +1069,7 @@ window.onFbAuthChange=async function(user){
         data=mergeDefaults(localBackup?JSON.parse(localBackup):{});
         await window.fb.setDoc(window.fb.doc(window.fb.db,'users',user.uid),data);
       }
+      if(navigator.onLine)setSyncDotState('saved');
       isLoadingFromCloud=false;
     }catch(e){
       console.error('Load error',e);
