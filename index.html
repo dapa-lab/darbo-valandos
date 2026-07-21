@@ -832,8 +832,8 @@ function scheduleRetry(){
   retryStep++;
   retryTimer=setTimeout(()=>{retryTimer=null;startCloudSave();},delay);
 }
-function startCloudSave(){
-  if(!currentUser||!cloudSavePending||cloudSaveActive)return;
+function startCloudSave(forceRetry=false){
+  if(!currentUser||!cloudSavePending||(cloudSaveActive&&!forceRetry))return;
   clearRetryTimer();
   cloudSaveActive=true;
   cloudSavePending=false;
@@ -847,7 +847,10 @@ function startCloudSave(){
   const timeout=setTimeout(()=>{
     if(attempt!==saveAttempt||!cloudSaveActive)return;
     timedOut=true;
+    cloudSaveActive=false;
+    cloudSavePending=true;
     showSyncFailure();
+    scheduleRetry();
   },10000);
   const finish=success=>{
     if(attempt!==saveAttempt)return;
@@ -872,8 +875,7 @@ function startCloudSave(){
 window.addEventListener('online',()=>{
   if(!currentUser||(IS_LOCAL_MODE||forcedLocalChoice)&&!cloudSyncEnabled||(!cloudSavePending&&!cloudSaveActive))return;
   clearRetryTimer();
-  setSyncStatus('syncing');
-  startCloudSave();
+  startCloudSave(true);
 });
 function save(){
   if(isLoadingFromCloud)return;
