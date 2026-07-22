@@ -589,6 +589,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     <button class="btn btn-ghost" style="width:100%" onclick="openBugReport()" data-i="bug_report_btn">🐞 Pranešti apie klaidą</button>
   </div>
   <div class="card diagnostics-row">
+    <div class="card-title">Sync diagnostics</div>
     <pre id="sync-diagnostics"></pre>
     <button class="btn btn-ghost btn-sm" onclick="copyDiagnostics()">Copy diagnostics</button>
   </div>
@@ -815,7 +816,7 @@ function withoutSync(value){const payload=Object.assign({},value||{});delete pay
 function syncMetaKey(uid){return 'dv-sync-meta-'+uid;}
 function revisionOf(sync){return sync&&Number.isFinite(sync.revision)&&sync.revision>=0?Math.floor(sync.revision):0;}
 function loadBaseRevision(uid){try{const meta=JSON.parse(localStorage.getItem(syncMetaKey(uid)));return meta&&Number.isFinite(meta.baseRevision)&&meta.baseRevision>=0?Math.floor(meta.baseRevision):0;}catch(e){return 0;}}
-function persistBaseRevision(uid,revision){baseRevision=revision;try{localStorage.setItem(syncMetaKey(uid),JSON.stringify({baseRevision:revision}));}catch(e){}}
+function persistBaseRevision(uid,revision){baseRevision=revision;try{localStorage.setItem(syncMetaKey(uid),JSON.stringify({baseRevision:revision}));}catch(e){}updateDiagnostics();}
 function deviceId(){
   const key='dv-sync-device-id';
   try{
@@ -1101,6 +1102,7 @@ window.onFbAuthChange=async function(user){
       console.error('Load error',e);
       isLoadingFromCloud=false;
     }
+    updateDiagnostics();
 
     initAppUI();
   }else{
@@ -1259,17 +1261,16 @@ function loadSettings(){
   document.getElementById('set-end-holder').innerHTML=time24Picker('set-end',s.end||'17:00','settings',0,'end');
   updateDiagnostics();
 }
-function diagnosticsText(){
-  let sync=data._sync||{};
-  try{sync=JSON.parse(localStorage.getItem('dv-cache-'+currentUser?.uid)||'null')||sync;}catch(e){}
-  return `UID: ${currentUser?.uid||'—'}\nRevision: ${sync.baseRevision??sync.revision??0}\nDevice: ${sync.deviceId||localStorage.getItem('dv-device-id')||'—'}\nNetwork: ${navigator.onLine?'Online':'Offline'}`;
+function diagnosticsText(full=false){
+  const uid=currentUser?.uid||'—',device=localStorage.getItem('dv-sync-device-id')||'—';
+  return `UID: ${full?uid:uid.slice(0,12)}\nRevision: ${baseRevision}\nDevice: ${full?device:device.slice(0,12)}\nNetwork: ${navigator.onLine?'Online':'Offline'}`;
 }
 function updateDiagnostics(){
   const el=document.getElementById('sync-diagnostics');
   if(el)el.textContent=diagnosticsText();
 }
 async function copyDiagnostics(){
-  const text=diagnosticsText();
+  const text=diagnosticsText(true);
   try{await navigator.clipboard.writeText(text);}catch(e){
     const input=document.createElement('textarea');
     input.value=text;document.body.append(input);input.select();document.execCommand('copy');input.remove();
@@ -2274,7 +2275,7 @@ function restoreBackup(input){
       try{
         await saveRestoredBackup(restored);
         data=mergeDefaults(restored);delete data._isNewUser;
-        save();initAppUI();toast(t('backup_restored'));
+        save();initAppUI();updateDiagnostics();toast(t('backup_restored'));
       }catch(e){console.error('Restore error',e);toast(t('backup_restore_failed'),true);}
     },t('backup_restore_yes'));
   };
