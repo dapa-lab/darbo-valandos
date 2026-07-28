@@ -209,7 +209,9 @@ textarea{resize:vertical;min-height:52px;}
 .vacation-edit-wrap.editing #vacation-edit-btn{display:none;}
 .vacation-edit-wrap input[readonly]{opacity:.78;cursor:default;}
 .s-label{font-size:14px;}.s-desc{font-size:12px;color:var(--text2);margin-top:2px;}
-.diagnostics-row{display:block;font-size:11px;line-height:1.5;color:var(--text2);}
+.diagnostics-toggle{width:100%;margin-top:10px;}
+.diagnostics-row{display:block;margin-top:8px;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;line-height:1.5;color:var(--text2);}
+.diagnostics-row[hidden]{display:none;}
 .diagnostics-row pre{font:inherit;margin:0 0 8px;white-space:pre-wrap;overflow-wrap:anywhere;}
 .sync-conflict-card{border-color:var(--danger);}
 .sync-conflict-card .s-desc{line-height:1.45;margin-bottom:10px;}
@@ -581,6 +583,11 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     <div id="sync-cloud-block" style="display:none">
       <div class="s-desc" style="margin-bottom:10px" id="sync-cloud-desc"></div>
       <button class="btn btn-ghost" style="width:100%" onclick="doLogout()" data-i="logout_btn">Atsijungti</button>
+      <button class="btn btn-ghost btn-sm diagnostics-toggle" id="sync-diagnostics-toggle" onclick="toggleDiagnostics()" aria-expanded="false" aria-controls="sync-diagnostics-panel" data-i="sync_diagnostics_toggle">Sinchronizavimo diagnostika</button>
+      <div class="diagnostics-row" id="sync-diagnostics-panel" hidden>
+        <pre id="sync-diagnostics"></pre>
+        <button class="btn btn-ghost btn-sm" id="copy-diagnostics-btn" onclick="copyDiagnostics()" data-i="sync_diagnostics_copy">Kopijuoti diagnostiką</button>
+      </div>
     </div>
   </div>
   <div class="card">
@@ -605,11 +612,6 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
       <button class="btn btn-primary" id="sync-conflict-keep" onclick="resolveConflictKeepLocal()"></button>
       <button class="btn btn-ghost sync-conflict-danger" id="sync-conflict-cloud" onclick="resolveConflictUseCloud()"></button>
     </div>
-  </div>
-  <div class="card diagnostics-row">
-    <div class="card-title">Sync diagnostics</div>
-    <pre id="sync-diagnostics"></pre>
-    <button class="btn btn-ghost btn-sm" onclick="copyDiagnostics()">Copy diagnostics</button>
   </div>
 </div>
 
@@ -732,6 +734,7 @@ const LANGS={
     view_list:'📋 Sąrašas',view_calendar:'📅 Kalendorius',cal_filled:'Užpildyta',cal_vacation:'Atostogos',cal_today:'Šiandien',cal_weekend_holiday:'Savaitgalis / šventinė d.',cal_holiday:'Šventinė diena',
     local_mode_label:'💾 Duomenys saugomi šiame įrenginyje',local_mode_title:'Vietinis saugojimas',enable_cloud_btn:'☁️ Įjungti debesį',logout_btn:'Atsijungti',
     cloud_confirm_title:'Įjungti debesies saugojimą?',cloud_confirm_desc:'Prisijungę su Google, jūsų duomenys bus saugomi debesyje ir pasiekiami iš kitų įrenginių.',
+    sync_diagnostics_toggle:'Sinchronizavimo diagnostika',sync_diagnostics_copy:'Kopijuoti diagnostiką',sync_diagnostics_copied:'Diagnostika nukopijuota',sync_diag_uid:'UID',sync_diag_revision:'Versija',sync_diag_device:'Įrenginys',sync_diag_network:'Tinklas',sync_diag_dirty:'Nepersiųsti pakeitimai',sync_diag_conflict:'Konfliktas',sync_diag_live:'Tiesioginiai atnaujinimai',sync_diag_deferred:'Atidėta debesies versija',sync_diag_resolution:'Sprendimo būsena',sync_diag_online:'Prisijungta',sync_diag_offline:'Neprisijungta',sync_diag_yes:'Taip',sync_diag_no:'Ne',sync_diag_active:'Aktyvūs',sync_diag_inactive:'Neaktyvūs',sync_diag_base:'Vietinė',sync_diag_remote:'Debesies',sync_diag_processing:'Vykdoma',sync_diag_deferred_revision:'Versija',
   },
   en:{
     nav_add:'Add',nav_entries:'Entries',nav_finance:'Finance',nav_settings:'Settings',
@@ -764,6 +767,7 @@ const LANGS={
     view_list:'📋 List',view_calendar:'📅 Calendar',cal_filled:'Filled',cal_vacation:'Vacation',cal_today:'Today',cal_weekend_holiday:'Weekend / public holiday',cal_holiday:'Public holiday',
     local_mode_label:'💾 Data stored on this device',local_mode_title:'Local storage',enable_cloud_btn:'☁️ Enable cloud',logout_btn:'Sign out',
     cloud_confirm_title:'Enable cloud sync?',cloud_confirm_desc:'After signing in with Google, your data will be stored in the cloud and accessible from other devices.',
+    sync_diagnostics_toggle:'Synchronization diagnostics',sync_diagnostics_copy:'Copy diagnostics',sync_diagnostics_copied:'Diagnostics copied',sync_diag_uid:'UID',sync_diag_revision:'Revision',sync_diag_device:'Device',sync_diag_network:'Network',sync_diag_dirty:'Dirty',sync_diag_conflict:'Conflict',sync_diag_live:'Live updates',sync_diag_deferred:'Deferred remote',sync_diag_resolution:'Resolution state',sync_diag_online:'Online',sync_diag_offline:'Offline',sync_diag_yes:'Yes',sync_diag_no:'No',sync_diag_active:'Active',sync_diag_inactive:'Inactive',sync_diag_base:'Base',sync_diag_remote:'Remote',sync_diag_processing:'Processing',sync_diag_deferred_revision:'Revision',
   },
   ru:{
     nav_add:'Добавить',nav_entries:'Записи',nav_finance:'Финансы',nav_settings:'Настройки',
@@ -796,6 +800,7 @@ const LANGS={
     view_list:'📋 Список',view_calendar:'📅 Календарь',cal_filled:'Заполнено',cal_vacation:'Отпуск',cal_today:'Сегодня',cal_weekend_holiday:'Выходной / праздничный день',cal_holiday:'Праздничный день',
     local_mode_label:'💾 Данные хранятся на этом устройстве',local_mode_title:'Локальное хранение',enable_cloud_btn:'☁️ Включить облако',logout_btn:'Выйти',
     cloud_confirm_title:'Включить облачное хранение?',cloud_confirm_desc:'После входа через Google ваши данные будут храниться в облаке и доступны с других устройств.',
+    sync_diagnostics_toggle:'Диагностика синхронизации',sync_diagnostics_copy:'Копировать диагностику',sync_diagnostics_copied:'Диагностика скопирована',sync_diag_uid:'UID',sync_diag_revision:'Версия',sync_diag_device:'Устройство',sync_diag_network:'Сеть',sync_diag_dirty:'Несохранённые изменения',sync_diag_conflict:'Конфликт',sync_diag_live:'Обновления в реальном времени',sync_diag_deferred:'Отложенная облачная версия',sync_diag_resolution:'Состояние разрешения',sync_diag_online:'В сети',sync_diag_offline:'Не в сети',sync_diag_yes:'Да',sync_diag_no:'Нет',sync_diag_active:'Активны',sync_diag_inactive:'Неактивны',sync_diag_base:'Локальная',sync_diag_remote:'Облачная',sync_diag_processing:'Обработка',sync_diag_deferred_revision:'Версия',
   }
 };
 
@@ -879,6 +884,7 @@ function resetCloudSaveState(){
   clearRetryTimer();
   cloudSaveActive=false;cloudSavePending=false;retryStep=0;syncConflict=null;manualResolutionActive=false;
   saveAttempt++;
+  collapseDiagnostics();
   updateDiagnostics();
 }
 function stopCloudListener(){
@@ -1201,7 +1207,7 @@ window.goToSettingsForCloud=function(){
 
 window.onFbAuthChange=async function(user){
   const previousUid=currentUser&&currentUser.uid;
-  if(previousUid!==(user&&user.uid))stopCloudListener();
+  if(previousUid!==(user&&user.uid)){stopCloudListener();collapseDiagnostics(true);}
   currentUser=user;
   if(previousUid!==(user&&user.uid)){syncConflict=null;localChangeVersion=0;}
 
@@ -1348,6 +1354,7 @@ function applyI18n(){
   const dot=document.getElementById('sync-dot');
   if(dot)setSyncDotState(dot.classList.contains('syncing')?'syncing':dot.classList.contains('saved')?'saved':dot.classList.contains('failed')?'failed':dot.classList.contains('offline')?'offline':dot.classList.contains('conflict')?'conflict':'');
   renderSyncConflict();
+  updateDiagnostics();
   updateRangeLabel();renderRangePicker();
 }
 function updateCloudDescription(){
@@ -1417,19 +1424,39 @@ function loadSettings(){
 }
 function diagnosticsText(full=false){
   const uid=currentUser?.uid||'—',device=localStorage.getItem('dv-sync-device-id')||'—';
-  return `UID: ${full?uid:uid.slice(0,12)}\nRevision: ${baseRevision}\nDevice: ${full?device:device.slice(0,12)}\nNetwork: ${navigator.onLine?'Online':'Offline'}\nDirty: ${currentUser&&loadSyncDirty(currentUser.uid)?'Yes':'No'}\nConflict: ${syncConflict?`Base ${baseRevision} / Remote ${syncConflict.remoteRevision}`:'No'}\nLive updates: ${cloudListenerActive?'Active':'Inactive'}\nDeferred remote: ${deferredRemoteUpdate?`Revision ${deferredRemoteUpdate.remoteRevision}`:'No'}${manualResolutionActive?'\nResolution: Processing':''}`;
+  const shown=value=>full||value==='—'?value:value.slice(0,8)+'…';
+  return `${t('sync_diag_uid')}: ${shown(uid)}\n${t('sync_diag_revision')}: ${baseRevision}\n${t('sync_diag_device')}: ${shown(device)}\n${t('sync_diag_network')}: ${navigator.onLine?t('sync_diag_online'):t('sync_diag_offline')}\n${t('sync_diag_dirty')}: ${currentUser&&loadSyncDirty(currentUser.uid)?t('sync_diag_yes'):t('sync_diag_no')}\n${t('sync_diag_conflict')}: ${syncConflict?`${t('sync_diag_base')} ${baseRevision} / ${t('sync_diag_remote')} ${syncConflict.remoteRevision}`:t('sync_diag_no')}\n${t('sync_diag_live')}: ${cloudListenerActive?t('sync_diag_active'):t('sync_diag_inactive')}\n${t('sync_diag_deferred')}: ${deferredRemoteUpdate?`${t('sync_diag_deferred_revision')} ${deferredRemoteUpdate.remoteRevision}`:t('sync_diag_no')}${manualResolutionActive?`\n${t('sync_diag_resolution')}: ${t('sync_diag_processing')}`:''}`;
+}
+function cloudSynchronizationActive(){return !!currentUser&&!((IS_LOCAL_MODE||forcedLocalChoice)&&!cloudSyncEnabled);}
+function collapseDiagnostics(clear=false){
+  const panel=document.getElementById('sync-diagnostics-panel'),toggle=document.getElementById('sync-diagnostics-toggle');
+  if(panel)panel.hidden=true;
+  if(toggle)toggle.setAttribute('aria-expanded','false');
+  if(clear){const el=document.getElementById('sync-diagnostics');if(el)el.textContent='';}
+}
+function toggleDiagnostics(){
+  const panel=document.getElementById('sync-diagnostics-panel'),toggle=document.getElementById('sync-diagnostics-toggle');
+  if(!panel||!toggle||!cloudSynchronizationActive())return;
+  const opening=panel.hidden;
+  panel.hidden=!opening;toggle.setAttribute('aria-expanded',String(opening));
+  if(opening){updateDiagnostics();requestAnimationFrame(()=>{const rect=panel.getBoundingClientRect();if(rect.top<0||rect.bottom>innerHeight)panel.scrollIntoView({behavior:'smooth',block:'nearest'});});}
 }
 function updateDiagnostics(){
-  const el=document.getElementById('sync-diagnostics');
-  if(el)el.textContent=diagnosticsText();
+  const el=document.getElementById('sync-diagnostics'),toggle=document.getElementById('sync-diagnostics-toggle');
+  const active=cloudSynchronizationActive();
+  if(toggle){toggle.hidden=!active;toggle.setAttribute('aria-label',t('sync_diagnostics_toggle'));}
+  if(!active){collapseDiagnostics(true);}else if(el)el.textContent=diagnosticsText();
   renderSyncConflict();
 }
 async function copyDiagnostics(){
   const text=diagnosticsText(true);
-  try{await navigator.clipboard.writeText(text);}catch(e){
+  let copied=false;
+  try{await navigator.clipboard.writeText(text);copied=true;}catch(e){
     const input=document.createElement('textarea');
-    input.value=text;document.body.append(input);input.select();document.execCommand('copy');input.remove();
+    input.value=text;document.body.append(input);input.select();
+    try{copied=document.execCommand('copy');}catch(fallbackError){}finally{input.remove();}
   }
+  toast(copied?t('sync_diagnostics_copied'):t('sync_failed'),!copied);
 }
 function saveSettings(){
   resetVacationEditUi();
