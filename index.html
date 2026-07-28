@@ -819,6 +819,7 @@ let cloudSaveActive=false,cloudSavePending=false,retryTimer=null,retryStep=0;
 let isLoadingFromCloud=false;
 let baseRevision=0,localChangeVersion=0,syncConflict=null,guardedWriteActive=false;
 let manualResolutionActive=false;
+let cloudListenerUnsubscribe=null,cloudListenerGeneration=0,deferredRemoteUpdate=null,cloudListenerActive=false,applyingRemoteUpdate=false;
 
 let curMonth=new Date().getMonth(),curYear=new Date().getFullYear();
 let rangeMonth=new Date().getMonth(),rangeYear=new Date().getFullYear(),rangeDraftStart='',rangeDraftFrom='',rangeDraftTo='';
@@ -880,6 +881,75 @@ function resetCloudSaveState(){
   saveAttempt++;
   updateDiagnostics();
 }
+function stopCloudListener(){
+  const unsubscribe=cloudListenerUnsubscribe;
+  cloudListenerUnsubscribe=null;
+  cloudListenerGeneration++;
+  deferredRemoteUpdate=null;
+  cloudListenerActive=false;
+  try{if(unsubscribe)unsubscribe();}finally{updateDiagnostics();}
+}
+function synchronizationWorkActive(){return cloudSaveActive||guardedWriteActive||manualResolutionActive||isLoadingFromCloud||applyingRemoteUpdate;}
+function deferRemoteUpdate(update){
+  if(!deferredRemoteUpdate||update.remoteRevision>deferredRemoteUpdate.remoteRevision)deferredRemoteUpdate=update;
+  updateDiagnostics();
+}
+function localSessionIsClean(){return currentUser&&!loadSyncDirty(currentUser.uid)&&!cloudSavePending&&!cloudSaveActive&&!guardedWriteActive&&!manualResolutionActive&&!syncConflict;}
+function renderRemoteApplicationData(){
+  applyTheme();
+  const lang=data.settings.lang||'lt';
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.id==='lang-'+lang));
+  applyI18n();updateCloudDescription();renderEntries();renderCalendar();
+  const focused=document.activeElement;
+  if(!(focused&&/^(INPUT|SELECT|TEXTAREA)$/.test(focused.tagName)&&focused.closest('#page-finansai')))renderFinances();
+  updateMonthLabel();updateMonthLabelF();
+}
+function applyRemoteUpdate(update){
+  if(!currentUser||update.remoteRevision<=baseRevision)return;
+  if(!localSessionIsClean()){
+    persistSyncDirty(currentUser.uid,true);cloudSavePending=true;clearRetryTimer();
+    const remoteRevision=Math.max(update.remoteRevision,syncConflict?.remoteRevision||0);
+    syncConflict={baseRevision,remoteRevision};
+    setSyncDotState(navigator.onLine?'conflict':'offline');renderSyncConflict();updateDiagnostics();return;
+  }
+  const userId=currentUser.uid;
+  applyingRemoteUpdate=true;isLoadingFromCloud=true;
+  try{
+    data=mergeDefaults(withoutSync(cloneApplicationData(update.remoteApplicationData)));
+    delete data._isNewUser;
+    persistBaseRevision(userId,update.remoteRevision);
+    try{localStorage.setItem('dv-cache-'+userId,JSON.stringify(withoutSync(data)));}catch(e){}
+    clearRetryTimer();persistSyncDirty(userId,false);cloudSavePending=false;syncConflict=null;
+    renderRemoteApplicationData();
+  }finally{isLoadingFromCloud=false;applyingRemoteUpdate=false;}
+  if(navigator.onLine)setSyncDotState('saved');
+  updateDiagnostics();processDeferredRemoteUpdate();
+}
+function processDeferredRemoteUpdate(){
+  if(!deferredRemoteUpdate||synchronizationWorkActive())return;
+  const update=deferredRemoteUpdate;deferredRemoteUpdate=null;updateDiagnostics();
+  if(update.remoteRevision<=baseRevision)return;
+  applyRemoteUpdate(update);
+}
+function handleRemoteSnapshot(snapshot,userId,generation){
+  if(generation!==cloudListenerGeneration||!currentUser||currentUser.uid!==userId||!snapshot.exists()||snapshot.metadata.hasPendingWrites||snapshot.metadata.fromCache)return;
+  const remote= snapshot.data(),remoteRevision=revisionOf(remote._sync);
+  if(!Number.isFinite(remoteRevision)||remoteRevision<=baseRevision)return;
+  const update={remoteRevision,remoteApplicationData:cloneApplicationData(withoutSync(remote)),remoteDeviceId:remote._sync&&remote._sync.deviceId};
+  if(synchronizationWorkActive()){deferRemoteUpdate(update);return;}
+  applyRemoteUpdate(update);
+}
+function startCloudListener(userId){
+  stopCloudListener();
+  if(!currentUser||currentUser.uid!==userId||(IS_LOCAL_MODE||forcedLocalChoice)&&!cloudSyncEnabled)return;
+  const generation=cloudListenerGeneration,documentRef=window.fb.doc(window.fb.db,'users',userId);
+  let errorLogged=false;
+  cloudListenerUnsubscribe=window.fb.onSnapshot(documentRef,{includeMetadataChanges:true},snapshot=>handleRemoteSnapshot(snapshot,userId,generation),error=>{
+    if(generation!==cloudListenerGeneration||!currentUser||currentUser.uid!==userId||errorLogged)return;
+    errorLogged=true;console.error('Cloud listener error',error);
+  });
+  cloudListenerActive=true;updateDiagnostics();
+}
 function showSyncFailure(error){if(error)console.error('Sync error',error);setSyncDotState('failed');updateDiagnostics();}
 function setSyncConflict(base,remote){syncConflict={baseRevision:base,remoteRevision:remote};cloudSavePending=true;clearRetryTimer();setSyncDotState('conflict');updateDiagnostics();}
 function scheduleRetry(){
@@ -901,7 +971,7 @@ function startCloudSave(){
     timedOut=true;cloudSavePending=true;showSyncFailure();scheduleRetry();
   },10000);
   const finish=(success,result)=>{
-    if(attempt!==saveAttempt)return;
+    if(attempt!==saveAttempt){processDeferredRemoteUpdate();return;}
     clearTimeout(timeout);cloudSaveActive=false;
     if(success){
       persistBaseRevision(userId,result);retryStep=0;clearRetryTimer();
@@ -912,12 +982,12 @@ function startCloudSave(){
         persistSyncDirty(userId,true);cloudSavePending=true;
         if(navigator.onLine)startCloudSave();else setSyncDotState('offline');
       }
-      updateDiagnostics();return;
+      updateDiagnostics();processDeferredRemoteUpdate();return;
     }
     cloudSavePending=true;
     if(result&&result.code==='dv/revision-conflict')setSyncConflict(result.expectedRevision,result.remoteRevision);
     else {if(!timedOut)showSyncFailure(result);scheduleRetry();}
-    updateDiagnostics();
+    updateDiagnostics();processDeferredRemoteUpdate();
   };
   try{Promise.resolve(guardedCloudWrite(userId,savedData,expectedRevision)).then(revision=>finish(true,revision),error=>finish(false,error));}catch(error){finish(false,error);}
 }
@@ -990,7 +1060,7 @@ async function resolveConflictKeepLocal(){
     }else{
       console.error('Conflict resolution error',error);setSyncDotState('conflict');renderSyncConflict();updateDiagnostics();toast(t('sync_failed'),true);
     }
-  }
+  }finally{processDeferredRemoteUpdate();}
 }
 function downloadConflictBackup(snapshot){
   const createdAt=new Date().toISOString();
@@ -1020,7 +1090,7 @@ async function resolveConflictUseCloud(){
       setSyncDotState('saved');renderSyncConflict();updateDiagnostics();toast(t('sync_cloud_loaded'));
     }catch(error){
       console.error('Conflict resolution error',error);manualResolutionActive=false;persistSyncDirty(userId,true);cloudSavePending=true;clearRetryTimer();setSyncDotState('conflict');renderSyncConflict();updateDiagnostics();toast(t('sync_failed'),true);
-    }
+    }finally{processDeferredRemoteUpdate();}
   },t('sync_use_cloud'));
 }
 
@@ -1062,6 +1132,7 @@ window.doLogin=async function(){
 };
 window.doLogout=async function(){
   confirm2(t('confirm_logout'),async()=>{
+    stopCloudListener();
     resetCloudSaveState();
     if(IS_LOCAL_MODE){
       cloudSyncEnabled=false;
@@ -1082,6 +1153,7 @@ let forcedLocalChoice = localStorage.getItem('dv-forced-local')==='1';
 window.useLocallyInstead=function(){
   forcedLocalChoice=true;
   localStorage.setItem('dv-forced-local','1');
+  stopCloudListener();
   resetCloudSaveState();
   startLocalMode();
 };
@@ -1099,6 +1171,7 @@ window.enableCloudSync=async function(){
 };
 
 function startLocalMode(){
+  stopCloudListener();
   resetCloudSaveState();
   document.getElementById('login-screen').classList.add('app-hidden');
   document.getElementById('app-root').classList.remove('app-hidden');
@@ -1128,6 +1201,7 @@ window.goToSettingsForCloud=function(){
 
 window.onFbAuthChange=async function(user){
   const previousUid=currentUser&&currentUser.uid;
+  if(previousUid!==(user&&user.uid))stopCloudListener();
   currentUser=user;
   if(previousUid!==(user&&user.uid)){syncConflict=null;localChangeVersion=0;}
 
@@ -1182,8 +1256,9 @@ window.onFbAuthChange=async function(user){
       if(e&&e.code==='dv/revision-conflict')setSyncConflict(e.expectedRevision,e.remoteRevision);
       else if(localDirty&&hasLocalCache){cloudSavePending=true;persistSyncDirty(user.uid,true);showSyncFailure(e);scheduleRetry();}
     }
-    updateDiagnostics();initAppUI();
+    updateDiagnostics();initAppUI();startCloudListener(user.uid);
   }else{
+    stopCloudListener();
     syncConflict=null;updateDiagnostics();
     document.getElementById('login-screen').classList.remove('app-hidden');
     document.getElementById('app-root').classList.add('app-hidden');
@@ -1342,7 +1417,7 @@ function loadSettings(){
 }
 function diagnosticsText(full=false){
   const uid=currentUser?.uid||'—',device=localStorage.getItem('dv-sync-device-id')||'—';
-  return `UID: ${full?uid:uid.slice(0,12)}\nRevision: ${baseRevision}\nDevice: ${full?device:device.slice(0,12)}\nNetwork: ${navigator.onLine?'Online':'Offline'}\nDirty: ${currentUser&&loadSyncDirty(currentUser.uid)?'Yes':'No'}\nConflict: ${syncConflict?`Base ${baseRevision} / Remote ${syncConflict.remoteRevision}`:'No'}${manualResolutionActive?'\nResolution: Processing':''}`;
+  return `UID: ${full?uid:uid.slice(0,12)}\nRevision: ${baseRevision}\nDevice: ${full?device:device.slice(0,12)}\nNetwork: ${navigator.onLine?'Online':'Offline'}\nDirty: ${currentUser&&loadSyncDirty(currentUser.uid)?'Yes':'No'}\nConflict: ${syncConflict?`Base ${baseRevision} / Remote ${syncConflict.remoteRevision}`:'No'}\nLive updates: ${cloudListenerActive?'Active':'Inactive'}\nDeferred remote: ${deferredRemoteUpdate?`Revision ${deferredRemoteUpdate.remoteRevision}`:'No'}${manualResolutionActive?'\nResolution: Processing':''}`;
 }
 function updateDiagnostics(){
   const el=document.getElementById('sync-diagnostics');
@@ -2336,9 +2411,11 @@ function validateBackup(backup){
 async function saveRestoredBackup(restored){
   if(IS_LOCAL_MODE&&!currentUser){localStorage.setItem('dv-local-data',JSON.stringify(restored));return;}
   if(!currentUser)throw new Error('No storage destination');
-  const revision=await guardedCloudWrite(currentUser.uid,restored,baseRevision);
-  persistBaseRevision(currentUser.uid,revision);persistSyncDirty(currentUser.uid,false);syncConflict=null;cloudSavePending=false;
-  try{localStorage.setItem('dv-cache-'+currentUser.uid,JSON.stringify(withoutSync(restored)));}catch(e){}
+  try{
+    const revision=await guardedCloudWrite(currentUser.uid,restored,baseRevision);
+    persistBaseRevision(currentUser.uid,revision);persistSyncDirty(currentUser.uid,false);syncConflict=null;cloudSavePending=false;
+    try{localStorage.setItem('dv-cache-'+currentUser.uid,JSON.stringify(withoutSync(restored)));}catch(e){}
+  }finally{processDeferredRemoteUpdate();}
 }
 function restoreBackup(input){
   const file=input.files&&input.files[0];input.value='';
