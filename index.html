@@ -194,7 +194,8 @@ textarea{resize:vertical;min-height:52px;}
 .rate-history-row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:13px;color:var(--text2)}
 .rate-current{display:flex;align-items:center;justify-content:flex-end;gap:8px}.rate-current strong{font-size:17px;color:var(--text);white-space:nowrap}
 .rate-edit-btn{width:var(--setting-control-height);height:var(--setting-control-height);padding:0;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}.rate-edit-btn svg{width:16px;height:16px}
-.rate-modal-summary{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px}.rate-modal-summary strong{font-size:17px}.rate-modal-effective{text-align:right;margin-top:3px}.rate-modal-history{margin-top:16px}
+.rate-modal-summary{display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:start;gap:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px}.rate-modal-current{min-width:0;text-align:right}.rate-modal-summary strong{display:block;font-size:17px;white-space:nowrap}.rate-modal-effective{margin-top:3px;font-size:clamp(11px,3.4vw,13px);white-space:nowrap}.rate-modal-history{margin-top:16px}
+@media(max-width:440px){.rate-modal-summary{grid-template-columns:minmax(0,1fr);gap:6px}.rate-modal-current{text-align:left}}
 .rate-hint{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;padding:14px 16px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:14px;}
 .setting-row:last-child{border:none;}
 .setting-row>div:last-child{width:100%;min-width:0;}
@@ -624,7 +625,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
 <div class="modal-bg" id="rate-modal">
   <div class="modal" style="max-width:380px">
     <div class="modal-title" data-i="rate_modal_title">Naujas valandinis įkainis</div>
-    <div class="rate-modal-summary"><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div><strong id="rate-modal-current-value">—</strong><div class="s-desc rate-modal-effective" id="current-rate-effective"></div></div></div>
+    <div class="rate-modal-summary"><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="rate-modal-current"><strong id="rate-modal-current-value">—</strong><div class="s-desc rate-modal-effective" id="current-rate-effective"></div></div></div>
     <div class="frow"><label class="lbl" data-i="rate_effective_from">Galioja nuo</label><input type="date" id="rate-effective-date"></div>
     <div class="frow"><label class="lbl" data-i="rate_field_label">Valandinis įkainis</label><input type="number" id="rate-new-value" min="0" step="0.5" inputmode="decimal"></div>
     <div style="display:flex;gap:8px;margin-top:12px">
