@@ -190,6 +190,9 @@ textarea{resize:vertical;min-height:52px;}
 .exp-desc-row{display:flex;gap:6px;align-items:flex-start;}
 .exp-desc-row>div{flex:1;}
 .setting-row{--setting-control-height:44px;--setting-control-width:min(70%,320px);display:grid;grid-template-columns:minmax(0,1fr) var(--setting-control-width);gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);}
+.rate-history{margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.rate-history-row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:13px;color:var(--text2)}
+.rate-current{display:flex;flex-direction:column;align-items:flex-end;gap:2px}.rate-current strong{font-size:17px;color:var(--text)}
 .rate-hint{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;padding:14px 16px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:14px;}
 .setting-row:last-child{border:none;}
 .setting-row>div:last-child{width:100%;min-width:0;}
@@ -553,7 +556,8 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
   <div class="rate-hint" id="rate-hint" style="display:none" data-i="rate_hint_text">👋 Sveiki! Pirmiausia įveskite savo valandinį atlygį.</div>
   <div class="card">
     <div class="card-title" data-i="set_general">Bendra</div>
-    <div class="setting-row"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="s-desc" data-i="rate_unit">€/val</div></div><input type="number" id="set-rate" placeholder="€/val" min="0" step="0.5" onchange="saveSettings();hideRateHint()" onkeydown="if(event.key==='Enter')hideRateHint()"></div>
+    <div class="setting-row" id="rate-setting-row" onclick="if(!getValidRateHistory().length)openRateModal()"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="s-desc" id="current-rate-effective"></div></div><div class="rate-current"><strong id="current-rate-value">—</strong><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openRateModal()" data-i="change_rate_from_date">Keisti įkainį nuo datos</button></div></div>
+    <div class="rate-history"><div class="s-label" data-i="rate_history_heading">Įkainių istorija</div><div id="rate-history-list"></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_lunch">Pietų pertrauka</div><div class="s-desc" data-i="set_lunch_desc">Minutės</div></div><input type="number" id="set-lunch" value="30" min="0" onchange="saveSettings()"></div>
     <div class="setting-row setting-row-vacation"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div></div><div class="vacation-edit-wrap"><input type="text" id="set-vacation" inputmode="decimal" readonly><button class="btn btn-ghost btn-sm" id="vacation-edit-btn" onclick="enableVacationEdit()" title="Redaguoti" aria-label="Redaguoti"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="M15 5l4 4"/></svg></button><button class="btn btn-ghost btn-sm" id="vacation-confirm-btn" onclick="confirmVacationSetting()" title="OK" aria-label="OK">OK</button></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_start">Pradžios laikas</div></div><div id="set-start-holder"></div></div>
@@ -611,6 +615,19 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
     <div class="sync-conflict-actions">
       <button class="btn btn-primary" id="sync-conflict-keep" onclick="resolveConflictKeepLocal()"></button>
       <button class="btn btn-ghost sync-conflict-danger" id="sync-conflict-cloud" onclick="resolveConflictUseCloud()"></button>
+    </div>
+  </div>
+</div>
+
+<!-- RATE MODAL -->
+<div class="modal-bg" id="rate-modal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-title" data-i="rate_modal_title">Naujas valandinis įkainis</div>
+    <div class="frow"><label class="lbl" data-i="rate_effective_from">Galioja nuo</label><input type="date" id="rate-effective-date"></div>
+    <div class="frow"><label class="lbl" data-i="rate_field_label">Valandinis įkainis</label><input type="number" id="rate-new-value" min="0" step="0.5" inputmode="decimal"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveRateChange()" data-i="btn_save">Išsaugoti</button>
+      <button class="btn btn-ghost" onclick="closeRateModal()" data-i="btn_cancel">Atšaukti</button>
     </div>
   </div>
 </div>
@@ -717,7 +734,7 @@ const LANGS={
     tag_default_salary:'Alga',tag_default_perdiem:'Komandiruotpinigiai',tag_default_mail:'Paštas',
     btn_add:'＋ Pridėti',btn_save:'Išsaugoti',btn_cancel:'Atšaukti',btn_delete_yes:'Taip, ištrinti',
     set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',set_vacation_balance:'Atostogų likutis',rate_unit:'€/val',btn_edit_vacation:'Redaguoti',btn_confirm:'Patvirtinti',confirm_vacation_update:'Ar norite atnaujinti atostogų valandų skaičiavimą?',confirm_vacation_only:'Atostogos turi būti vienintelis objektas šiame įraše. Pašalinti kitus objektus?',
-    rate_hint_text:'👋 Sveiki! Pirmiausia įveskite savo valandinį atlygį.',
+    rate_hint_text:'👋 Sveiki! Pirmiausia įveskite savo valandinį atlygį.',change_rate_from_date:'Keisti įkainį nuo datos',rate_modal_title:'Naujas valandinis įkainis',rate_effective_from:'Galioja nuo',rate_field_label:'Valandinis įkainis',rate_history_heading:'Įkainių istorija',initial_rate:'Pradinis įkainis',rate_active_from:'Galioja nuo',confirm_replace_rate:'Šiai datai įkainis jau nustatytas. Ar pakeisti jį nauju įkainiu?',err_rate_date:'Pasirinkite įkainio galiojimo datą',err_rate_value:'Įveskite didesnį nei 0 valandinį įkainį',saved_rate:'✓ Valandinis įkainis išsaugotas',
     set_start:'Pradžios laikas',set_end:'Pabaigos laikas',set_theme:'Tema',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Kalba',
     set_data:'Duomenys',set_import:'Importuoti',set_sync:'Saugojimas',sync_active:'Prisijungta debesyje',sync_syncing:'Išsaugoma',sync_synced:'Sinchronizuota',sync_failed:'Nepavyko išsaugoti',sync_offline:'Nėra interneto',sync_conflict:'Konfliktas: debesyje yra naujesnių duomenų',sync_conflict_title:'Sinchronizavimo konfliktas',sync_conflict_explanation:'Šiame įrenginyje yra neišsaugotų pakeitimų, tačiau debesyje jau yra naujesnė duomenų versija.',sync_local_version:'Vietinė versija',sync_cloud_version:'Debesies versija',sync_keep_local:'Išsaugoti mano pakeitimus',sync_use_cloud:'Naudoti debesies duomenis',sync_resolution_processing:'Sprendžiama…',sync_resolution_offline:'Konfliktui išspręsti reikalingas interneto ryšys',sync_keep_local_success:'Mano pakeitimai išsaugoti debesyje',sync_conflict_refreshed:'Debesies duomenys vėl pasikeitė. Peržiūrėkite atnaujintą konfliktą.',sync_use_cloud_confirm:'Vietiniai neišsaugoti pakeitimai bus pakeisti debesies duomenimis. Prieš tęsiant bus atsisiųsta jų atsarginė kopija. Tęsti?',sync_local_changed:'Sprendimo metu vietiniai duomenys pasikeitė. Bandykite dar kartą.',sync_cloud_loaded:'Įkelti naujausi debesies duomenys',backup_create:'💾 Kurti atsarginę kopiją',backup_restore:'↩️ Atkurti atsarginę kopiją',backup_created:'✓ Atsarginė kopija atsisiųsta',backup_restored:'✓ Atsarginė kopija atkurta',backup_invalid:'⚠️ Netinkama atsarginės kopijos byla',backup_restore_confirm:'Atstatymas pakeis visus dabartinius duomenis. Prieš tęsiant bus atsisiųsta atsarginė kopija. Tęsti?',backup_restore_yes:'Atkurti',backup_restore_failed:'⚠️ Nepavyko atkurti atsarginės kopijos',
     set_bug:'Pagalba',bug_report_btn:'🐞 Pranešti apie klaidą',bug_modal_title:'Pranešti apie klaidą',bug_desc_label:'Aprašykite klaidą',bug_desc_ph:'Kas neveikia ar kas atsitiko?',bug_send_btn:'📧 Siųsti',bug_empty_err:'Įveskite aprašymą',bug_sent_msg:'✓ Atidaromas pašto klientas',
@@ -750,7 +767,7 @@ const LANGS={
     tag_default_salary:'Salary',tag_default_perdiem:'Per diem',tag_default_mail:'Mail',
     btn_add:'＋ Add',btn_save:'Save',btn_cancel:'Cancel',btn_delete_yes:'Yes, delete',
     set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',set_vacation_balance:'Vacation balance',rate_unit:'€/hr',btn_edit_vacation:'Edit',btn_confirm:'Confirm',confirm_vacation_update:'Do you want to update vacation hours calculation?',confirm_vacation_only:'Vacation must be the only object in this entry. Remove other objects?',
-    rate_hint_text:'👋 Welcome! First, enter your hourly rate.',
+    rate_hint_text:'👋 Welcome! First, enter your hourly rate.',change_rate_from_date:'Change rate from date',rate_modal_title:'New hourly rate',rate_effective_from:'Effective from',rate_field_label:'Hourly rate',rate_history_heading:'Rate history',initial_rate:'Initial rate',rate_active_from:'Effective from',confirm_replace_rate:'A rate already exists for this date. Replace it with the new rate?',err_rate_date:'Select an effective date',err_rate_value:'Enter an hourly rate greater than 0',saved_rate:'✓ Hourly rate saved',
     set_start:'Start time',set_end:'End time',set_theme:'Theme',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Language',
     set_data:'Data',set_import:'Import',set_sync:'Storage',sync_active:'synced to cloud',sync_syncing:'Syncing',sync_synced:'Synced',sync_failed:'Save failed',sync_offline:'Offline',sync_conflict:'Conflict: newer data exists in the cloud',sync_conflict_title:'Synchronization conflict',sync_conflict_explanation:'This device has unsaved changes, but a newer data version already exists in the cloud.',sync_local_version:'Local version',sync_cloud_version:'Cloud version',sync_keep_local:'Keep my changes',sync_use_cloud:'Use cloud data',sync_resolution_processing:'Processing…',sync_resolution_offline:'An internet connection is required to resolve the conflict',sync_keep_local_success:'My changes were saved to the cloud',sync_conflict_refreshed:'Cloud data changed again. Review the updated conflict.',sync_use_cloud_confirm:'Local unsaved changes will be replaced with cloud data. A backup will be downloaded first. Continue?',sync_local_changed:'Local data changed during resolution. Try again.',sync_cloud_loaded:'Latest cloud data loaded',backup_create:'💾 Create backup',backup_restore:'↩️ Restore backup',backup_created:'✓ Backup downloaded',backup_restored:'✓ Backup restored',backup_invalid:'⚠️ Invalid backup file',backup_restore_confirm:'Restoring will replace all current data. A backup of the current data will be downloaded first. Continue?',backup_restore_yes:'Restore',backup_restore_failed:'⚠️ Backup restore failed',
     set_bug:'Support',bug_report_btn:'🐞 Report a bug',bug_modal_title:'Report a bug',bug_desc_label:'Describe the issue',bug_desc_ph:'What happened or isn\'t working?',bug_send_btn:'📧 Send',bug_empty_err:'Please enter a description',bug_sent_msg:'✓ Opening mail client',
@@ -783,7 +800,7 @@ const LANGS={
     tag_default_salary:'Зарплата',tag_default_perdiem:'Суточные',tag_default_mail:'Почта',
     btn_add:'＋ Добавить',btn_save:'Сохранить',btn_cancel:'Отмена',btn_delete_yes:'Да, удалить',
     set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',set_vacation_balance:'Остаток отпуска',rate_unit:'€/ч',btn_edit_vacation:'Редактировать',btn_confirm:'Подтвердить',confirm_vacation_update:'Хотите обновить расчет отпускных часов?',confirm_vacation_only:'Отпуск должен быть единственным объектом в этой записи. Удалить другие объекты?',
-    rate_hint_text:'👋 Добро пожаловать! Сначала введите свою почасовую ставку.',
+    rate_hint_text:'👋 Добро пожаловать! Сначала введите свою почасовую ставку.',change_rate_from_date:'Изменить ставку с даты',rate_modal_title:'Новая почасовая ставка',rate_effective_from:'Действует с',rate_field_label:'Почасовая ставка',rate_history_heading:'История ставок',initial_rate:'Начальная ставка',rate_active_from:'Действует с',confirm_replace_rate:'Для этой даты ставка уже установлена. Заменить её новой ставкой?',err_rate_date:'Выберите дату начала действия ставки',err_rate_value:'Введите почасовую ставку больше 0',saved_rate:'✓ Почасовая ставка сохранена',
     set_start:'Начало работы',set_end:'Конец работы',set_theme:'Тема',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Язык',
     set_data:'Данные',set_import:'Импорт',set_sync:'Хранение',sync_active:'синхронизировано с облаком',sync_syncing:'Синхронизация',sync_synced:'Синхронизировано',sync_failed:'Ошибка сохранения',sync_offline:'Нет интернета',sync_conflict:'Конфликт: в облаке есть более новые данные',sync_conflict_title:'Конфликт синхронизации',sync_conflict_explanation:'На этом устройстве есть несохранённые изменения, но в облаке уже находится более новая версия данных.',sync_local_version:'Локальная версия',sync_cloud_version:'Облачная версия',sync_keep_local:'Сохранить мои изменения',sync_use_cloud:'Использовать данные из облака',sync_resolution_processing:'Обработка…',sync_resolution_offline:'Для разрешения конфликта требуется подключение к интернету',sync_keep_local_success:'Мои изменения сохранены в облаке',sync_conflict_refreshed:'Данные в облаке снова изменились. Проверьте обновлённый конфликт.',sync_use_cloud_confirm:'Локальные несохранённые изменения будут заменены данными из облака. Сначала будет скачана резервная копия. Продолжить?',sync_local_changed:'Локальные данные изменились во время разрешения конфликта. Повторите попытку.',sync_cloud_loaded:'Загружены последние данные из облака',backup_create:'💾 Создать резервную копию',backup_restore:'↩️ Восстановить резервную копию',backup_created:'✓ Резервная копия скачана',backup_restored:'✓ Резервная копия восстановлена',backup_invalid:'⚠️ Недопустимый файл резервной копии',backup_restore_confirm:'Восстановление заменит все текущие данные. Сначала будет скачана резервная копия. Продолжить?',backup_restore_yes:'Восстановить',backup_restore_failed:'⚠️ Не удалось восстановить резервную копию',
     set_bug:'Поддержка',bug_report_btn:'🐞 Сообщить об ошибке',bug_modal_title:'Сообщить об ошибке',bug_desc_label:'Опишите проблему',bug_desc_ph:'Что не работает или произошло?',bug_send_btn:'📧 Отправить',bug_empty_err:'Введите описание',bug_sent_msg:'✓ Открывается почтовый клиент',
@@ -816,7 +833,7 @@ const THEME_MODES={
 // #endregion Theme
 
 // #region State
-let data={entries:[],payments:{},expenses:{},settings:{rate:0,lunch:30,start:'07:00',end:'17:00',theme:'dark',mode:'dark',vacationBase:null,vacationBaseDate:null,vacationUsedAtBase:0,vacationIgnoredObjects:[],lang:'lt'}};
+let data={entries:[],payments:{},expenses:{},settings:{rate:0,rateHistory:[],lunch:30,start:'07:00',end:'17:00',theme:'dark',mode:'dark',vacationBase:null,vacationBaseDate:null,vacationUsedAtBase:0,vacationIgnoredObjects:[],lang:'lt'}};
 let currentUser=null;
 let saveTimer=null;
 let saveAttempt=0;
@@ -1275,7 +1292,7 @@ window.onFbAuthChange=async function(user){
 
 // #region Initialization
 function mergeDefaults(d){
-  const isNew=!d||!d.settings||!d.settings.rate;
+  const isNew=!d||!d.settings||(!(Number(d.settings.rate)>0)&&!normalizeRateHistory(d.settings.rateHistory).length);
   if(!d)d={};
   if(!d.entries)d.entries=[];
   if(!d.payments)d.payments={};
@@ -1283,6 +1300,8 @@ function mergeDefaults(d){
   if(!d.bonuses)d.bonuses={};
   if(!d.settings)d.settings={};
   d.settings.rate=d.settings.rate||0;
+  d.settings.rateHistory=normalizeRateHistory(d.settings.rateHistory);
+  if(!d.settings.rateHistory.length&&Number.isFinite(Number(d.settings.rate))&&Number(d.settings.rate)>0)d.settings.rateHistory=[{effectiveFrom:'1900-01-01',rate:Number(d.settings.rate)}];
   d.settings.lunch=d.settings.lunch??30;
   d.settings.start=d.settings.start||'07:00';
   d.settings.end=d.settings.end||'17:00';
@@ -1313,11 +1332,11 @@ function initAppUI(){
     document.querySelector('nav button:nth-child(4)')?.click();
     setTimeout(()=>{
       const hint=document.getElementById('rate-hint');
-      const rateInput=document.getElementById('set-rate');
+      const rateInput=document.getElementById('rate-setting-row');
       if(hint){hint.style.display='block';}
       if(rateInput){
         rateInput.scrollIntoView({behavior:'smooth',block:'center'});
-        rateInput.focus();
+        rateInput.click();
       }
     },150);
   }
@@ -1355,7 +1374,7 @@ function applyI18n(){
   if(dot)setSyncDotState(dot.classList.contains('syncing')?'syncing':dot.classList.contains('saved')?'saved':dot.classList.contains('failed')?'failed':dot.classList.contains('offline')?'offline':dot.classList.contains('conflict')?'conflict':'');
   renderSyncConflict();
   updateDiagnostics();
-  updateRangeLabel();renderRangePicker();
+  updateRangeLabel();renderRangePicker();renderRateSettings();
 }
 function updateCloudDescription(){
   const scd=document.getElementById('sync-cloud-desc');
@@ -1410,7 +1429,7 @@ function showPage(id,btn){
 // #region Settings
 function loadSettings(){
   const s=data.settings;
-  document.getElementById('set-rate').value=s.rate||'';
+  renderRateSettings();
   document.getElementById('set-lunch').value=s.lunch??30;
   const vacInput=document.getElementById('set-vacation');
   if(vacInput){
@@ -1458,9 +1477,38 @@ async function copyDiagnostics(){
   }
   toast(copied?t('sync_diagnostics_copied'):t('sync_failed'),!copied);
 }
+function renderRateSettings(){
+  const history=getValidRateHistory(),today=dateToStr(new Date());
+  const activeRate=getHourlyRateForDate(today);let active;
+  for(const item of history){if(item.effectiveFrom<=today)active=item;else break;}
+  if(!active&&history.length)active=history[0];
+  const value=document.getElementById('current-rate-value'),effective=document.getElementById('current-rate-effective'),list=document.getElementById('rate-history-list');
+  if(value)value.textContent=activeRate?`${activeRate} ${t('rate_unit')}`:'—';
+  if(effective)effective.textContent=active?(active.effectiveFrom==='1900-01-01'?t('initial_rate'):`${t('rate_active_from')} ${active.effectiveFrom}`):'';
+  if(list)list.innerHTML=[...history].reverse().map(item=>`<div class="rate-history-row"><span>${item.effectiveFrom==='1900-01-01'?t('initial_rate'):`${t('rate_active_from')} ${item.effectiveFrom}`}</span><strong>${item.rate} ${t('rate_unit')}</strong></div>`).join('');
+}
+function openRateModal(){
+  const history=getValidRateHistory(),date=document.getElementById('rate-effective-date');
+  date.value=history.length?dateToStr(new Date()):'1900-01-01';date.disabled=!history.length;
+  document.getElementById('rate-new-value').value='';document.getElementById('rate-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('rate-new-value').focus(),50);
+}
+function closeRateModal(){document.getElementById('rate-modal').classList.remove('show');}
+function saveRateChange(){
+  const date=document.getElementById('rate-effective-date').value,rate=Number(document.getElementById('rate-new-value').value);
+  if(!date){showErrField('rate-effective-date');toast('⚠️ '+t('err_rate_date'),true);return;}
+  if(!Number.isFinite(rate)||rate<=0){showErrField('rate-new-value');toast('⚠️ '+t('err_rate_value'),true);return;}
+  const history=getValidRateHistory(),existing=history.find(item=>item.effectiveFrom===date);
+  const persist=()=>{
+    data.settings.rateHistory=normalizeRateHistory([...history.filter(item=>item.effectiveFrom!==date),{effectiveFrom:date,rate}]);
+    data.settings.rate=getHourlyRateForDate(dateToStr(new Date()));
+    save();closeRateModal();hideRateHint();loadSettings();renderEntries();renderCalendar();renderFinances();toast(t('saved_rate'));
+  };
+  if(existing)confirm2(t('confirm_replace_rate'),persist,t('btn_save'));else persist();
+}
+
 function saveSettings(){
   resetVacationEditUi();
-  data.settings.rate=parseFloat(document.getElementById('set-rate').value)||0;
   const lunch=parseInt(document.getElementById('set-lunch').value);
   data.settings.lunch=Number.isFinite(lunch)?lunch:30;
   data.settings.start=t24GetValue('set-start')||'07:00';
@@ -1607,7 +1655,29 @@ function clearFilters(){
   const obj=document.getElementById('f-obj');if(obj)obj.value='';
   renderEntries();
 }
+function isLocalDateString(value){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+  const[y,m,d]=value.split('-').map(Number),date=new Date(y,m-1,d);
+  return date.getFullYear()===y&&date.getMonth()===m-1&&date.getDate()===d;
+}
+function normalizeRateHistory(history){
+  const byDate=new Map();
+  (Array.isArray(history)?history:[]).forEach(item=>{
+    const date=String(item?.effectiveFrom||'');const rate=Number(item?.rate);
+    if(isLocalDateString(date)&&Number.isFinite(rate)&&rate>0)byDate.set(date,{effectiveFrom:date,rate});
+  });
+  return [...byDate.values()].sort((a,b)=>a.effectiveFrom.localeCompare(b.effectiveFrom));
+}
+function getValidRateHistory(){return normalizeRateHistory(data.settings.rateHistory);}
+function getHourlyRateForDate(date){
+  const history=getValidRateHistory();let match;
+  for(const item of history){if(item.effectiveFrom<=date)match=item;else break;}
+  if(match)return match.rate;
+  if(history.length)return history[0].rate;
+  const legacy=Number(data.settings.rate);return Number.isFinite(legacy)&&legacy>0?legacy:0;
+}
 function entryHours(e){return(e.objs||[]).reduce((s,o)=>s+(o.hours||0),0);}
+function entryEarnings(e){return entryHours(e)*getHourlyRateForDate(e.date);}
 function toMin(tv){if(!tv)return 0;const[h,m]=tv.split(':').map(Number);return h*60+m;}
 function addHr(tv,h){const[hh,mm]=tv.split(':').map(Number);const tot=hh*60+mm+Math.round(h*60);return`${String(Math.floor(tot/60)%24).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;}
 
@@ -1971,9 +2041,8 @@ function renderEntries(){
     return true;
   });
 
-  const rate=data.settings.rate||0;
   const totalH=filtered.reduce((s,e)=>s+entryHours(e),0);
-  const earned=totalH*rate;
+  const earned=filtered.reduce((sum,e)=>sum+entryEarnings(e),0);
   const matchingDates=new Set(filtered.map(e=>e.date));
   const filteredBonus=Object.values(data.bonuses||{}).flat().reduce((s,b)=>{
     if(!b.date)return s;
@@ -2244,7 +2313,7 @@ function renderFinances(){
   const key=getMonthKey();
   const mE=data.entries.filter(e=>e.date.startsWith(key));
   const totalH=mE.reduce((s,e)=>s+entryHours(e),0);
-  const rate=data.settings.rate||0,earned=totalH*rate;
+  const earned=mE.reduce((sum,e)=>sum+entryEarnings(e),0);
   const payments=data.payments[key]||[],expenses=data.expenses[key]||[],bonuses=data.bonuses?.[key]||[];
   const received=payments.reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
   const totalExp=expenses.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
@@ -2456,8 +2525,9 @@ function restoreBackup(input){
     confirm2(t('backup_restore_confirm'),async()=>{
       createBackup(false);
       try{
+        restored=mergeDefaults(restored);delete restored._isNewUser;
         await saveRestoredBackup(restored);
-        data=mergeDefaults(restored);delete data._isNewUser;
+        data=restored;
         initAppUI();updateDiagnostics();toast(t('backup_restored'));
       }catch(e){
         console.error('Restore error',e);
