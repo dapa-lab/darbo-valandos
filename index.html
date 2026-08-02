@@ -851,6 +851,25 @@ let confirmCb=null,swipeX={},objBlocks=[];
 
 function t(k){return(LANGS[data.settings.lang]||LANGS.lt)[k]||k;}
 
+const PAYMENT_COMMENT_KEYS={
+  '__salary__':'tag_default_salary',
+  '__per_diem__':'tag_default_perdiem',
+  '__mail__':'tag_default_mail'
+};
+const LEGACY_PAYMENT_COMMENTS={
+  'Alga':'__salary__','Salary':'__salary__','Зарплата':'__salary__',
+  'Komandiruotpinigiai':'__per_diem__','Per diem':'__per_diem__','Суточные':'__per_diem__',
+  'Paštas':'__mail__','Mail':'__mail__','Почта':'__mail__',
+  '__DEFAULT_SALARY__':'__salary__','__DEFAULT_PERDIEM__':'__per_diem__','__DEFAULT_MAIL__':'__mail__'
+};
+function normalizePaymentComment(value){
+  return Object.prototype.hasOwnProperty.call(PAYMENT_COMMENT_KEYS,value)?value:(LEGACY_PAYMENT_COMMENTS[value]||value);
+}
+function getPaymentCommentLabel(value){
+  const normalized=normalizePaymentComment(value),key=PAYMENT_COMMENT_KEYS[normalized];
+  return key?t(key):normalized;
+}
+
 // #endregion State
 
 // #region Storage
@@ -1296,6 +1315,11 @@ function mergeDefaults(d){
   if(!d)d={};
   if(!d.entries)d.entries=[];
   if(!d.payments)d.payments={};
+  Object.values(d.payments).forEach(payments=>{
+    if(Array.isArray(payments))payments.forEach(payment=>{
+      if(payment&&typeof payment.comment==='string')payment.comment=normalizePaymentComment(payment.comment);
+    });
+  });
   if(!d.expenses)d.expenses={};
   if(!d.bonuses)d.bonuses={};
   if(!d.settings)d.settings={};
@@ -2341,26 +2365,21 @@ function renderPayList(payments){
       <div class="frow" style="margin:-4px 0 0">
         <label class="lbl" style="font-size:11px">${t('pay_comment')}</label>
         <div style="display:flex;gap:6px">
-          <input type="text" list="pay-comment-list" style="flex:1" value="${escH(p.comment||'')}" placeholder="${t('add_comment_ph')}" onfocus="dlFocus(this)" onblur="dlBlur(this,true)" onchange="upPay(${i},'comment',this.value)">
+          <input type="text" list="pay-comment-list" style="flex:1" value="${escH(getPaymentCommentLabel(p.comment||''))}" placeholder="${t('add_comment_ph')}" onfocus="dlFocus(this)" onblur="dlBlur(this,true)" onchange="upPay(${i},'comment',this.value)">
           <button class="btn-dout btn-sm btn-neutral" title="${t('manage_tags_btn')}" onclick="openTagManager()" style="flex-shrink:0">⚙️</button>
         </div>
       </div>
     </div>`).join('');
   const dl=document.getElementById('pay-comment-list');
-  if(dl)dl.innerHTML=tags.map(tg=>`<option value="${escH(displayTagText(tg))}">`).join('');
+  if(dl)dl.innerHTML=tags.map(tg=>`<option value="${escH(getPaymentCommentLabel(tg))}">`).join('');
 }
 
 function getPayCommentTags(){
   if(!data.payCommentTags){
-    data.payCommentTags=['__DEFAULT_SALARY__','__DEFAULT_PERDIEM__','__DEFAULT_MAIL__'];
+    data.payCommentTags=['__salary__','__per_diem__','__mail__'];
   }
+  data.payCommentTags=data.payCommentTags.map(normalizePaymentComment);
   return data.payCommentTags;
-}
-function displayTagText(tg){
-  if(tg==='__DEFAULT_SALARY__')return t('tag_default_salary');
-  if(tg==='__DEFAULT_PERDIEM__')return t('tag_default_perdiem');
-  if(tg==='__DEFAULT_MAIL__')return t('tag_default_mail');
-  return tg;
 }
 
 // #endregion Salary
@@ -2381,7 +2400,7 @@ function renderTagManagerList(){
   if(!tags.length){el.innerHTML=`<div style="color:var(--text2);font-size:13px">${t('empty')}</div>`;return;}
   el.innerHTML=tags.map((tg,i)=>`
     <div style="display:flex;gap:8px;align-items:center">
-      <input type="text" value="${escH(displayTagText(tg))}" style="flex:1" onchange="renameTag(${i},this.value)">
+      <input type="text" value="${escH(getPaymentCommentLabel(tg))}" style="flex:1" onchange="renameTag(${i},this.value)">
       <button class="btn-dout btn-sm" onclick="deleteTagConfirm(${i})">✕</button>
     </div>`).join('');
 }
@@ -2389,14 +2408,14 @@ function addNewTag(){
   const inp=document.getElementById('new-tag-input');
   const v=inp.value.trim();
   if(!v)return;
-  getPayCommentTags().push(v);
+  getPayCommentTags().push(normalizePaymentComment(v));
   save();
   inp.value='';
   renderTagManagerList();
   renderFinances();
 }
 function renameTag(i,v){
-  data.payCommentTags[i]=v.trim();
+  data.payCommentTags[i]=normalizePaymentComment(v.trim());
   save();renderFinances();
 }
 function deleteTagConfirm(i){
@@ -2444,7 +2463,7 @@ function renderBonusList(bonuses){
 }
 
 function autoSaveFinances(){save();renderFinances();}
-function upPay(i,f,v){const k=getMonthKey();data.payments[k][i][f]=v;autoSaveFinances();}
+function upPay(i,f,v){const k=getMonthKey();data.payments[k][i][f]=f==='comment'?normalizePaymentComment(v):v;autoSaveFinances();}
 function upExp(i,f,v){const k=getMonthKey();data.expenses[k][i][f]=v;autoSaveFinances();}
 function upBonus(i,f,v){const k=getMonthKey();data.bonuses[k][i][f]=v;autoSaveFinances();}
 
