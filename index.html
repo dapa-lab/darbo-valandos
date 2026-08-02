@@ -189,10 +189,12 @@ textarea{resize:vertical;min-height:52px;}
 .exp-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
 .exp-desc-row{display:flex;gap:6px;align-items:flex-start;}
 .exp-desc-row>div{flex:1;}
-.setting-row{--setting-control-height:44px;--setting-control-width:min(70%,320px);display:grid;grid-template-columns:minmax(0,1fr) var(--setting-control-width);gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);}
-.rate-history{margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.setting-row{--setting-control-height:44px;--setting-control-width:min(58%,240px);display:grid;grid-template-columns:minmax(0,1fr) var(--setting-control-width);gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
+.rate-history{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
 .rate-history-row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:13px;color:var(--text2)}
-.rate-current{display:flex;flex-direction:column;align-items:flex-end;gap:2px}.rate-current strong{font-size:17px;color:var(--text)}
+.rate-current{display:flex;align-items:center;justify-content:flex-end;gap:8px}.rate-current strong{font-size:17px;color:var(--text);white-space:nowrap}
+.rate-edit-btn{width:var(--setting-control-height);height:var(--setting-control-height);padding:0;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}.rate-edit-btn svg{width:16px;height:16px}
+.rate-modal-summary{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px}.rate-modal-summary strong{font-size:17px}.rate-modal-effective{text-align:right;margin-top:3px}.rate-modal-history{margin-top:16px}
 .rate-hint{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;padding:14px 16px;border-radius:10px;font-size:14px;font-weight:600;margin-bottom:14px;}
 .setting-row:last-child{border:none;}
 .setting-row>div:last-child{width:100%;min-width:0;}
@@ -556,8 +558,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
   <div class="rate-hint" id="rate-hint" style="display:none" data-i="rate_hint_text">👋 Sveiki! Pirmiausia įveskite savo valandinį atlygį.</div>
   <div class="card">
     <div class="card-title" data-i="set_general">Bendra</div>
-    <div class="setting-row" id="rate-setting-row" onclick="if(!getValidRateHistory().length)openRateModal()"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div class="s-desc" id="current-rate-effective"></div></div><div class="rate-current"><strong id="current-rate-value">—</strong><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openRateModal()" data-i="change_rate_from_date">Keisti įkainį nuo datos</button></div></div>
-    <div class="rate-history"><div class="s-label" data-i="rate_history_heading">Įkainių istorija</div><div id="rate-history-list"></div></div>
+    <div class="setting-row" id="rate-setting-row" onclick="if(!getValidRateHistory().length)openRateModal()"><div><div class="s-label" data-i="set_rate">Valandinis atlygis</div></div><div class="rate-current"><strong id="current-rate-value">—</strong><button class="btn btn-ghost btn-sm rate-edit-btn" onclick="event.stopPropagation();openRateModal()" title="Redaguoti" aria-label="Redaguoti" data-i-title="btn_edit_vacation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="M15 5l4 4"/></svg></button></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_lunch">Pietų pertrauka</div><div class="s-desc" data-i="set_lunch_desc">Minutės</div></div><input type="number" id="set-lunch" value="30" min="0" onchange="saveSettings()"></div>
     <div class="setting-row setting-row-vacation"><div><div class="s-label" data-i="set_vacation_balance">Atostogų likutis</div></div><div class="vacation-edit-wrap"><input type="text" id="set-vacation" inputmode="decimal" readonly><button class="btn btn-ghost btn-sm" id="vacation-edit-btn" onclick="enableVacationEdit()" title="Redaguoti" aria-label="Redaguoti"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="M15 5l4 4"/></svg></button><button class="btn btn-ghost btn-sm" id="vacation-confirm-btn" onclick="confirmVacationSetting()" title="OK" aria-label="OK">OK</button></div></div>
     <div class="setting-row"><div><div class="s-label" data-i="set_start">Pradžios laikas</div></div><div id="set-start-holder"></div></div>
@@ -623,12 +624,14 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
 <div class="modal-bg" id="rate-modal">
   <div class="modal" style="max-width:380px">
     <div class="modal-title" data-i="rate_modal_title">Naujas valandinis įkainis</div>
+    <div class="rate-modal-summary"><div class="s-label" data-i="set_rate">Valandinis atlygis</div><div><strong id="rate-modal-current-value">—</strong><div class="s-desc rate-modal-effective" id="current-rate-effective"></div></div></div>
     <div class="frow"><label class="lbl" data-i="rate_effective_from">Galioja nuo</label><input type="date" id="rate-effective-date"></div>
     <div class="frow"><label class="lbl" data-i="rate_field_label">Valandinis įkainis</label><input type="number" id="rate-new-value" min="0" step="0.5" inputmode="decimal"></div>
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn btn-primary" style="flex:1" onclick="saveRateChange()" data-i="btn_save">Išsaugoti</button>
       <button class="btn btn-ghost" onclick="closeRateModal()" data-i="btn_cancel">Atšaukti</button>
     </div>
+    <div class="rate-history rate-modal-history"><div class="s-label" data-i="rate_history_heading">Įkainių istorija</div><div id="rate-history-list"></div></div>
   </div>
 </div>
 
@@ -1506,13 +1509,15 @@ function renderRateSettings(){
   const activeRate=getHourlyRateForDate(today);let active;
   for(const item of history){if(item.effectiveFrom<=today)active=item;else break;}
   if(!active&&history.length)active=history[0];
-  const value=document.getElementById('current-rate-value'),effective=document.getElementById('current-rate-effective'),list=document.getElementById('rate-history-list');
+  const value=document.getElementById('current-rate-value'),modalValue=document.getElementById('rate-modal-current-value'),effective=document.getElementById('current-rate-effective'),list=document.getElementById('rate-history-list');
   if(value)value.textContent=activeRate?`${activeRate} ${t('rate_unit')}`:'—';
+  if(modalValue)modalValue.textContent=activeRate?`${activeRate} ${t('rate_unit')}`:'—';
   if(effective)effective.textContent=active?(active.effectiveFrom==='1900-01-01'?t('initial_rate'):`${t('rate_active_from')} ${active.effectiveFrom}`):'';
   if(list)list.innerHTML=[...history].reverse().map(item=>`<div class="rate-history-row"><span>${item.effectiveFrom==='1900-01-01'?t('initial_rate'):`${t('rate_active_from')} ${item.effectiveFrom}`}</span><strong>${item.rate} ${t('rate_unit')}</strong></div>`).join('');
 }
 function openRateModal(){
   const history=getValidRateHistory(),date=document.getElementById('rate-effective-date');
+  renderRateSettings();
   date.value=history.length?dateToStr(new Date()):'1900-01-01';date.disabled=!history.length;
   document.getElementById('rate-new-value').value='';document.getElementById('rate-modal').classList.add('show');
   setTimeout(()=>document.getElementById('rate-new-value').focus(),50);
