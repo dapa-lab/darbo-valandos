@@ -442,15 +442,15 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
   <button onclick="doLogout()" id="logout-btn" data-i="logout_btn">Atsijungti</button>
 </div>
 <div class="reminder-stack" id="reminder-stack" style="display:none">
-  <div class="reminder-card" id="evening-reminder" style="display:none"><div id="evening-reminder-text"></div><button class="btn btn-primary btn-sm" onclick="openReminderDate(getLocalDateString(new Date()))" id="evening-fill"></button><button class="btn btn-ghost btn-sm" onclick="dismissEveningReminder()" id="evening-dismiss"></button></div>
-  <div class="reminder-card reminder-clickable" id="missing-days-warning" style="display:none" onclick="openMissingDaysModal()"></div>
+  <div class="reminder-card" id="evening-reminder" style="display:none"><div id="evening-reminder-text"></div><button type="button" class="btn btn-primary btn-sm" data-reminder-action="fill-today" id="evening-fill"></button><button type="button" class="btn btn-ghost btn-sm" data-reminder-action="dismiss-today" id="evening-dismiss"></button></div>
+  <div class="reminder-card reminder-clickable" id="missing-days-warning" style="display:none" data-reminder-action="open-missing-list"></div>
 </div>
 <nav>
   <div class="local-badge" id="local-badge" style="display:none" onclick="goToSettingsForCloud()" title="Local mode" data-i-title="local_mode_title">
     <div class="local-badge-cloud"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9Z"/></svg></div>
     <div class="local-badge-slash"></div>
   </div>
-  <button class="active" onclick="showPage('prideti',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span><span class="nav-label" data-i="nav_add">Pridėti</span></button>
+  <button class="active" id="nav-add-button" onclick="showPage('prideti',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span><span class="nav-label" data-i="nav_add">Pridėti</span></button>
   <button onclick="showPage('irasymai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h6"/><path d="M9 3h6a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h1V5a2 2 0 0 1 2-2Z"/><path d="M8 12h8M8 16h5"/></svg></span><span class="nav-label" data-i="nav_entries">Įrašai</span></button>
   <button onclick="showPage('finansai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M16 10h2a2 2 0 0 1 0 4h-2a2 2 0 0 1 0-4Z"/><path d="M7 6V4h10v2"/></svg></span><span class="nav-label" data-i="nav_finance">Finansai</span></button>
   <button onclick="showPage('nustatymai',this)"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.05.05a2 2 0 1 1-2.83 2.83l-.05-.05A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.07a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.88.34l-.05.05a2 2 0 1 1-2.83-2.83l.05-.05A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.07a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.88l-.05-.05a2 2 0 1 1 2.83-2.83l.05.05A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.07a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.05-.05a2 2 0 1 1 2.83 2.83l-.05.05A1.7 1.7 0 0 0 19.4 9c.2.61.77 1 1.55 1H21a2 2 0 1 1 0 4h-.07A1.7 1.7 0 0 0 19.4 15Z"/></svg></span><span class="nav-label" data-i="nav_settings">Nustatymai</span></button>
@@ -639,7 +639,7 @@ body{background:var(--bg);transition:background-color .22s ease,color .22s ease;
   </div>
 </div>
 
-<div class="modal-bg" id="missing-days-modal"><div class="modal" style="max-width:400px"><div class="modal-title" id="missing-days-title"></div><div class="missing-list" id="missing-days-list"></div><button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="closeMissingDaysModal()" data-i="evening_dismiss">Uždaryti</button></div></div>
+<div class="modal-bg" id="missing-days-modal"><div class="modal" style="max-width:400px"><div class="modal-title" id="missing-days-title"></div><div class="missing-list" id="missing-days-list"></div><button type="button" class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="closeMissingDaysModal()" data-i="evening_dismiss">Uždaryti</button></div></div>
 
 <div class="modal-bg" id="cloud-backup-modal"><div class="modal" style="max-width:480px"><div class="modal-title" data-i="cloud_backups">Debesies atsarginės kopijos</div><div class="cloud-backup-meta cloud-backup-summary" id="cloud-backup-summary"></div><div class="s-desc" data-i="cloud_backup_info"></div><button class="btn btn-primary" id="cloud-create-btn" style="width:100%;margin-top:12px" onclick="createManualCloudBackup()" data-i="cloud_create_now">Sukurti kopiją dabar</button><div id="cloud-backup-list"></div><button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="closeCloudBackupsModal()" data-i="btn_cancel">Atšaukti</button></div></div>
 
@@ -1508,10 +1508,10 @@ function startReminderTimer(){clearInterval(reminderTimer);reminderTimer=setInte
 function stopReminderTimer(){clearInterval(reminderTimer);reminderTimer=null;}
 function dismissEveningReminder(){localStorage.setItem(eveningDismissKey(),getLocalDateString(new Date()));renderReminders();}
 function hasAddDraft(){return objBlocks.some(block=>String(block.obj||'').trim())||document.getElementById('inp-drive').checked||document.getElementById('inp-comment').value.trim();}
-function openReminderDate(date){const open=()=>{document.querySelector('nav button:nth-child(1)')?.click();document.getElementById('inp-date').value=date;closeMissingDaysModal();};if(hasAddDraft()&&document.getElementById('inp-date').value!==date)confirm2(t('confirm_discard_draft')||'Discard the current draft?',open,t('btn_delete_yes'));else open();}
+function openReminderDate(date){const open=()=>{document.getElementById('nav-add-button')?.click();document.getElementById('inp-date').value=date;closeMissingDaysModal();if(date===getLocalDateString(new Date()))document.getElementById('evening-reminder').style.display='none';};if(hasAddDraft()&&document.getElementById('inp-date').value!==date)confirm2(t('confirm_discard_draft')||'Discard the current draft?',open,t('btn_delete_yes'));else open();}
 function openMissingDaysModal(){renderMissingDaysModal();document.getElementById('missing-days-modal').classList.add('show');}
 function closeMissingDaysModal(){document.getElementById('missing-days-modal').classList.remove('show');}
-function renderMissingDaysModal(){document.getElementById('missing-days-title').textContent=t('missing_title');document.getElementById('missing-days-list').innerHTML=getMissingWorkingDates().map(date=>`<button class="missing-row" onclick="openReminderDate('${date}')">${parseLocalDateString(date).toLocaleDateString(t('locale'),{weekday:'long',year:'numeric',month:'2-digit',day:'2-digit'})}</button>`).join('');}
+function renderMissingDaysModal(){document.getElementById('missing-days-title').textContent=t('missing_title');document.getElementById('missing-days-list').innerHTML=getMissingWorkingDates().map(date=>`<button type="button" class="missing-row" data-reminder-action="fill-missing-date" data-date="${date}">${parseLocalDateString(date).toLocaleDateString(t('locale'),{weekday:'long',year:'numeric',month:'2-digit',day:'2-digit'})}</button>`).join('');}
 function renderReminderSettings(){const reminders=data.settings.reminders,names=t('weekday_short');document.getElementById('reminder-weekdays').innerHTML=names.map((name,day)=>`<button type="button" class="weekday-btn ${reminders.workingDays.includes(day)?'selected':''}" onclick="toggleWorkingDay(${day})">${name}</button>`).join('');document.getElementById('set-missing-enabled').checked=reminders.missingDaysEnabled;document.getElementById('set-evening-enabled').checked=reminders.eveningEnabled;const time=document.getElementById('set-evening-time');time.value=reminders.eveningTime;time.disabled=!reminders.eveningEnabled;}
 function toggleWorkingDay(day){const days=data.settings.reminders.workingDays;if(days.includes(day)){if(days.length===1){toast('⚠️ '+t('working_days_empty'),true);return;}data.settings.reminders.workingDays=days.filter(value=>value!==day);}else data.settings.reminders.workingDays=[...days,day].sort();save();renderReminderSettings();toast(t('saved_settings'));}
 function saveReminderSettings(){const reminders=data.settings.reminders;reminders.missingDaysEnabled=document.getElementById('set-missing-enabled').checked;reminders.eveningEnabled=document.getElementById('set-evening-enabled').checked;reminders.eveningTime=document.getElementById('set-evening-time').value||'20:00';if(!reminders.workingDays.length){toast('⚠️ '+t('working_days_empty'),true);return;}save();renderReminderSettings();toast(t('saved_settings'));}
@@ -2320,6 +2320,14 @@ function canTapEntryAction(id){return !swipeX[id]?.blockActions;}
 function closeSwipe(id){const en=document.getElementById('en-'+id),ea=document.getElementById('ea-'+id);if(!en)return;en.classList.remove('swiped');setTimeout(()=>{if(!en.classList.contains('swiped'))ea.style.display='none';},220);}
 
 document.addEventListener('click',function(e){
+  const reminderAction=e.target.closest('[data-reminder-action]');
+  if(reminderAction){
+    const action=reminderAction.dataset.reminderAction;
+    if(action==='fill-today')openReminderDate(getLocalDateString(new Date()));
+    else if(action==='dismiss-today')dismissEveningReminder();
+    else if(action==='open-missing-list')openMissingDaysModal();
+    else if(action==='fill-missing-date'&&isLocalDateString(reminderAction.dataset.date))openReminderDate(reminderAction.dataset.date);
+  }
   if(!e.target.closest('.entry-wrap'))
     document.querySelectorAll('.entry.swiped').forEach(el=>closeSwipe(el.id.replace('en-','')));
 });
