@@ -113,6 +113,9 @@ textarea{resize:vertical;min-height:52px;}
 .mult-check input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
 .mult-check span{font-size:13px;color:var(--text2);}
 .hours-disp{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:8px 11px;font-size:14px;color:var(--accent);font-weight:600;margin-top:8px;}
+.vacation-duration{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.vacation-duration span{color:var(--text2);font-weight:500;}
+.vacation-duration strong{white-space:nowrap;}
 .total-bar{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px 14px;margin:6px 0 10px;display:flex;justify-content:space-between;align-items:center;}
 .total-bar span{color:var(--text2);font-size:13px;}
 .total-bar strong{color:var(--accent);font-size:18px;}
@@ -761,7 +764,7 @@ const LANGS={
     manage_tags_btn:'Redaguoti sąrašą',manage_tags_title:'Komentarų sąrašas',new_tag_ph:'Naujas komentaras...',btn_close:'Uždaryti',confirm_del_tag:'Ištrinti šį komentarą iš sąrašo?',
     tag_default_salary:'Alga',tag_default_perdiem:'Komandiruotpinigiai',tag_default_mail:'Paštas',
     btn_add:'＋ Pridėti',btn_save:'Išsaugoti',btn_cancel:'Atšaukti',btn_delete_yes:'Taip, ištrinti',
-    set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',set_vacation_balance:'Atostogų likutis',rate_unit:'€/val',btn_edit_vacation:'Redaguoti',btn_confirm:'Patvirtinti',confirm_vacation_update:'Ar norite atnaujinti atostogų valandų skaičiavimą?',confirm_vacation_only:'Atostogos turi būti vienintelis objektas šiame įraše. Pašalinti kitus objektus?',
+    set_general:'Bendra',set_rate:'Valandinis atlygis',set_lunch:'Pietų pertrauka',set_lunch_desc:'Minutės',set_vacation_balance:'Atostogų likutis',vacation_duration:'Atostogų trukmė',vacation_hours:'8 val.',rate_unit:'€/val',btn_edit_vacation:'Redaguoti',btn_confirm:'Patvirtinti',confirm_vacation_update:'Ar norite atnaujinti atostogų valandų skaičiavimą?',confirm_vacation_only:'Atostogos turi būti vienintelis objektas šiame įraše. Pašalinti kitus objektus?',
     rate_hint_text:'👋 Sveiki! Pirmiausia įveskite savo valandinį atlygį.',change_rate_from_date:'Keisti įkainį nuo datos',rate_modal_title:'Naujas valandinis įkainis',rate_effective_from:'Galioja nuo',rate_field_label:'Valandinis įkainis',rate_history_heading:'Įkainių istorija',initial_rate:'Pradinis įkainis',rate_active_from:'Galioja nuo',confirm_replace_rate:'Šiai datai įkainis jau nustatytas. Ar pakeisti jį nauju įkainiu?',err_rate_date:'Pasirinkite įkainio galiojimo datą',err_rate_value:'Įveskite didesnį nei 0 valandinį įkainį',saved_rate:'✓ Valandinis įkainis išsaugotas',
     set_start:'Pradžios laikas',set_end:'Pabaigos laikas',set_theme:'Tema',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Kalba',
     set_data:'Duomenys',set_import:'Importuoti',set_sync:'Saugojimas',sync_active:'Prisijungta debesyje',sync_syncing:'Išsaugoma',sync_synced:'Sinchronizuota',sync_failed:'Nepavyko išsaugoti',sync_offline:'Nėra interneto',sync_conflict:'Konfliktas: debesyje yra naujesnių duomenų',sync_conflict_title:'Sinchronizavimo konfliktas',sync_conflict_explanation:'Šiame įrenginyje yra neišsaugotų pakeitimų, tačiau debesyje jau yra naujesnė duomenų versija.',sync_local_version:'Vietinė versija',sync_cloud_version:'Debesies versija',sync_keep_local:'Išsaugoti mano pakeitimus',sync_use_cloud:'Naudoti debesies duomenis',sync_resolution_processing:'Sprendžiama…',sync_resolution_offline:'Konfliktui išspręsti reikalingas interneto ryšys',sync_keep_local_success:'Mano pakeitimai išsaugoti debesyje',sync_conflict_refreshed:'Debesies duomenys vėl pasikeitė. Peržiūrėkite atnaujintą konfliktą.',sync_use_cloud_confirm:'Vietiniai neišsaugoti pakeitimai bus pakeisti debesies duomenimis. Prieš tęsiant bus atsisiųsta jų atsarginė kopija. Tęsti?',sync_local_changed:'Sprendimo metu vietiniai duomenys pasikeitė. Bandykite dar kartą.',sync_cloud_loaded:'Įkelti naujausi debesies duomenys',backup_create:'Kurti atsarginę kopiją',backup_restore:'Atkurti atsarginę kopiją',backup_created:'✓ Atsarginė kopija atsisiųsta',backup_restored:'✓ Atsarginė kopija atkurta',backup_invalid:'⚠️ Netinkama atsarginės kopijos byla',backup_restore_confirm:'Atstatymas pakeis visus dabartinius duomenis. Prieš tęsiant bus atsisiųsta atsarginė kopija. Tęsti?',backup_restore_yes:'Atkurti',backup_restore_failed:'⚠️ Nepavyko atkurti atsarginės kopijos',
@@ -796,7 +799,7 @@ const LANGS={
     manage_tags_btn:'Edit list',manage_tags_title:'Comment list',new_tag_ph:'New comment...',btn_close:'Close',confirm_del_tag:'Delete this comment from the list?',
     tag_default_salary:'Salary',tag_default_perdiem:'Per diem',tag_default_mail:'Mail',
     btn_add:'＋ Add',btn_save:'Save',btn_cancel:'Cancel',btn_delete_yes:'Yes, delete',
-    set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',set_vacation_balance:'Vacation balance',rate_unit:'€/hr',btn_edit_vacation:'Edit',btn_confirm:'Confirm',confirm_vacation_update:'Do you want to update vacation hours calculation?',confirm_vacation_only:'Vacation must be the only object in this entry. Remove other objects?',
+    set_general:'General',set_rate:'Hourly rate',set_lunch:'Lunch break',set_lunch_desc:'Minutes',set_vacation_balance:'Vacation balance',vacation_duration:'Vacation duration',vacation_hours:'8 hrs',rate_unit:'€/hr',btn_edit_vacation:'Edit',btn_confirm:'Confirm',confirm_vacation_update:'Do you want to update vacation hours calculation?',confirm_vacation_only:'Vacation must be the only object in this entry. Remove other objects?',
     rate_hint_text:'👋 Welcome! First, enter your hourly rate.',change_rate_from_date:'Change rate from date',rate_modal_title:'New hourly rate',rate_effective_from:'Effective from',rate_field_label:'Hourly rate',rate_history_heading:'Rate history',initial_rate:'Initial rate',rate_active_from:'Effective from',confirm_replace_rate:'A rate already exists for this date. Replace it with the new rate?',err_rate_date:'Select an effective date',err_rate_value:'Enter an hourly rate greater than 0',saved_rate:'✓ Hourly rate saved',
     set_start:'Start time',set_end:'End time',set_theme:'Theme',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Language',
     set_data:'Data',set_import:'Import',set_sync:'Storage',sync_active:'synced to cloud',sync_syncing:'Syncing',sync_synced:'Synced',sync_failed:'Save failed',sync_offline:'Offline',sync_conflict:'Conflict: newer data exists in the cloud',sync_conflict_title:'Synchronization conflict',sync_conflict_explanation:'This device has unsaved changes, but a newer data version already exists in the cloud.',sync_local_version:'Local version',sync_cloud_version:'Cloud version',sync_keep_local:'Keep my changes',sync_use_cloud:'Use cloud data',sync_resolution_processing:'Processing…',sync_resolution_offline:'An internet connection is required to resolve the conflict',sync_keep_local_success:'My changes were saved to the cloud',sync_conflict_refreshed:'Cloud data changed again. Review the updated conflict.',sync_use_cloud_confirm:'Local unsaved changes will be replaced with cloud data. A backup will be downloaded first. Continue?',sync_local_changed:'Local data changed during resolution. Try again.',sync_cloud_loaded:'Latest cloud data loaded',backup_create:'Create backup',backup_restore:'Restore backup',backup_created:'✓ Backup downloaded',backup_restored:'✓ Backup restored',backup_invalid:'⚠️ Invalid backup file',backup_restore_confirm:'Restoring will replace all current data. A backup of the current data will be downloaded first. Continue?',backup_restore_yes:'Restore',backup_restore_failed:'⚠️ Backup restore failed',
@@ -831,7 +834,7 @@ const LANGS={
     manage_tags_btn:'Изменить список',manage_tags_title:'Список комментариев',new_tag_ph:'Новый комментарий...',btn_close:'Закрыть',confirm_del_tag:'Удалить этот комментарий из списка?',
     tag_default_salary:'Зарплата',tag_default_perdiem:'Суточные',tag_default_mail:'Почта',
     btn_add:'＋ Добавить',btn_save:'Сохранить',btn_cancel:'Отмена',btn_delete_yes:'Да, удалить',
-    set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',set_vacation_balance:'Остаток отпуска',rate_unit:'€/ч',btn_edit_vacation:'Редактировать',btn_confirm:'Подтвердить',confirm_vacation_update:'Хотите обновить расчет отпускных часов?',confirm_vacation_only:'Отпуск должен быть единственным объектом в этой записи. Удалить другие объекты?',
+    set_general:'Общее',set_rate:'Почасовая ставка',set_lunch:'Обеденный перерыв',set_lunch_desc:'Минуты',set_vacation_balance:'Остаток отпуска',vacation_duration:'Продолжительность отпуска',vacation_hours:'8 ч.',rate_unit:'€/ч',btn_edit_vacation:'Редактировать',btn_confirm:'Подтвердить',confirm_vacation_update:'Хотите обновить расчет отпускных часов?',confirm_vacation_only:'Отпуск должен быть единственным объектом в этой записи. Удалить другие объекты?',
     rate_hint_text:'👋 Добро пожаловать! Сначала введите свою почасовую ставку.',change_rate_from_date:'Изменить ставку с даты',rate_modal_title:'Новая почасовая ставка',rate_effective_from:'Действует с',rate_field_label:'Почасовая ставка',rate_history_heading:'История ставок',initial_rate:'Начальная ставка',rate_active_from:'Действует с',confirm_replace_rate:'Для этой даты ставка уже установлена. Заменить её новой ставкой?',err_rate_date:'Выберите дату начала действия ставки',err_rate_value:'Введите почасовую ставку больше 0',saved_rate:'✓ Почасовая ставка сохранена',
     set_start:'Начало работы',set_end:'Конец работы',set_theme:'Тема',mode_night:'🌙 Dark',mode_day:'☀️ Light',set_lang:'Язык',
     set_data:'Данные',set_import:'Импорт',set_sync:'Хранение',sync_active:'синхронизировано с облаком',sync_syncing:'Синхронизация',sync_synced:'Синхронизировано',sync_failed:'Ошибка сохранения',sync_offline:'Нет интернета',sync_conflict:'Конфликт: в облаке есть более новые данные',sync_conflict_title:'Конфликт синхронизации',sync_conflict_explanation:'На этом устройстве есть несохранённые изменения, но в облаке уже находится более новая версия данных.',sync_local_version:'Локальная версия',sync_cloud_version:'Облачная версия',sync_keep_local:'Сохранить мои изменения',sync_use_cloud:'Использовать данные из облака',sync_resolution_processing:'Обработка…',sync_resolution_offline:'Для разрешения конфликта требуется подключение к интернету',sync_keep_local_success:'Мои изменения сохранены в облаке',sync_conflict_refreshed:'Данные в облаке снова изменились. Проверьте обновлённый конфликт.',sync_use_cloud_confirm:'Локальные несохранённые изменения будут заменены данными из облака. Сначала будет скачана резервная копия. Продолжить?',sync_local_changed:'Локальные данные изменились во время разрешения конфликта. Повторите попытку.',sync_cloud_loaded:'Загружены последние данные из облака',backup_create:'Создать резервную копию',backup_restore:'Восстановить резервную копию',backup_created:'✓ Резервная копия скачана',backup_restored:'✓ Резервная копия восстановлена',backup_invalid:'⚠️ Недопустимый файл резервной копии',backup_restore_confirm:'Восстановление заменит все текущие данные. Сначала будет скачана резервная копия. Продолжить?',backup_restore_yes:'Восстановить',backup_restore_failed:'⚠️ Не удалось восстановить резервную копию',
@@ -1429,7 +1432,7 @@ function selectMode(mode){data.settings.mode=mode==='light'?'light':'dark';data.
 function setLang(l){
   data.settings.lang=l;save();
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.id==='lang-'+l));
-  applyI18n();updateCloudDescription();renderEntries();renderFinances();renderCalendar();updateMonthLabel();updateMonthLabelF();renderReminderSettings();renderReminders();renderCloudBackups();
+  applyI18n();renderObjBlocks();if(editId!==null)renderEditBlocks();updateCloudDescription();renderEntries();renderFinances();renderCalendar();updateMonthLabel();updateMonthLabelF();renderReminderSettings();renderReminders();renderCloudBackups();
 }
 
 function applyI18n(){
@@ -1775,7 +1778,8 @@ function getHourlyRateForDate(date){
   if(history.length)return history[0].rate;
   const legacy=Number(data.settings.rate);return Number.isFinite(legacy)&&legacy>0?legacy:0;
 }
-function entryHours(e){return(e.objs||[]).reduce((s,o)=>s+(o.hours||0),0);}
+function objectHours(o){return isVacationObject(o?.obj)?8:(Number(o?.hours)||0);}
+function entryHours(e){return(e.objs||[]).reduce((s,o)=>s+objectHours(o),0);}
 function entryEarnings(e){return entryHours(e)*getHourlyRateForDate(e.date);}
 function toMin(tv){if(!tv)return 0;const[h,m]=tv.split(':').map(Number);return h*60+m;}
 function addHr(tv,h){const[hh,mm]=tv.split(':').map(Number);const tot=hh*60+mm+Math.round(h*60);return`${String(Math.floor(tot/60)%24).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;}
@@ -1795,6 +1799,7 @@ function getWeekNum(ds){const d=new Date(ds);d.setHours(0,0,0,0);d.setDate(d.get
 function colorClass(ds){const dow=new Date(ds).getDay();if(dow===0||dow===6)return'weekend';return getWeekNum(ds)%2===0?'week-a':'week-b';}
 
 function calcH(b,isFirst){
+  if(isVacationObject(b.obj))return 8;
   if(!b.from||!b.to)return 0;
   let m=toMin(b.to)-toMin(b.from);
   if(m<=0)return 0;
@@ -1808,6 +1813,7 @@ function calcH(b,isFirst){
 function validateTimeBlocks(blocks,pfx){
   let hasSameTime=false,hasNoTime=false;
   blocks.forEach((b,i)=>{
+    if(isVacationObject(b.obj))return;
     const fe=document.getElementById(`${pfx}-from-${i}-wrap`),te=document.getElementById(`${pfx}-to-${i}-wrap`);
     const missing=!b.from||!b.to;
     if(missing||b.from===b.to){
@@ -1985,7 +1991,7 @@ function t24OnChange(selEl){
 function renderBlocksTo(blocks,container,pfx,removeFn,multFn,changeFn,totalFn){
   const objs=getKnownObjs();
   container.innerHTML=blocks.map((b,i)=>{
-    const h=calcH(b,i===0);
+    const h=calcH(b,i===0),isVacation=isVacationObject(b.obj);
     return`<div class="obj-block" id="${pfx}-ob-${i}">
       <div class="obj-block-hdr">
         <span>${t('add_obj_label')}${blocks.length>1?' '+(i+1):''}</span>
@@ -1996,7 +2002,7 @@ function renderBlocksTo(blocks,container,pfx,removeFn,multFn,changeFn,totalFn){
           oninput="${pfx}ObjectChanged(${i},this.value);this.classList.remove('err-field')" onchange="${pfx}ObjectChanged(${i},this.value);this.classList.remove('err-field')">
         <datalist id="${pfx}-ol-${i}">${objs.map(o=>`<option value="${escH(o)}">`).join('')}</datalist>
       </div>
-      <div class="time-row">
+      ${isVacation?`<div class="hours-disp vacation-duration"><span>${t('vacation_duration')}</span><strong>${t('vacation_hours')}</strong></div>`:`<div class="time-row">
         <div class="frow" style="margin:0"><label class="lbl" style="font-size:11px">${t('add_from')}</label>
           ${time24Picker(`${pfx}-from-${i}`,b.from,pfx,i,'from')}
         </div>
@@ -2009,6 +2015,7 @@ function renderBlocksTo(blocks,container,pfx,removeFn,multFn,changeFn,totalFn){
         <label class="mult-check"><input type="checkbox" ${b.mult===2?'checked':''} onchange="${multFn}(${i},2)"><span>×2</span></label>
       </div>
       <div class="hours-disp" id="${pfx}-hrs-${i}">${h.toFixed(2)} ${t('week_val')}</div>
+      `}
     </div>`;
   }).join('');
 }
@@ -2025,7 +2032,7 @@ function addEntry(){
   if(objBlocks.some((b,i)=>{const el=document.getElementById('add-obj-'+i);if(!b.obj.trim()){if(el)el.classList.add('err-field');return true;}return false;})){toast('⚠️ '+t('err_obj_name'),true);return;}
   if(!validateTimeBlocks(objBlocks,'add'))return;
   if(objBlocks.some(b=>isVacationObject(b.obj)))objBlocks=objBlocks.filter(b=>isVacationObject(b.obj)).slice(0,1);
-  const newObjs=objBlocks.map((b,i)=>({obj:b.obj.trim(),from:b.from,to:b.to,hours:parseFloat(calcH(b,i===0).toFixed(2)),mult:b.mult||null}));
+  const newObjs=objBlocks.map((b,i)=>isVacationObject(b.obj)?{obj:b.obj.trim(),from:'',to:'',hours:8,mult:null}:{obj:b.obj.trim(),from:b.from,to:b.to,hours:parseFloat(calcH(b,i===0).toFixed(2)),mult:b.mult||null});
   const newIsVacation=newObjs.some(o=>isVacationObject(o.obj));
   const ex=data.entries.find(e=>e.date===date);
   const exIsVacation=(ex?.objs||[]).some(o=>isVacationObject(o.obj));
@@ -2170,7 +2177,7 @@ function renderEntries(){
 
   list.innerHTML=filteredDesc.map(e=>{
     const th=entryHours(e);const cc=colorClass(e.date);
-    const objRows=(e.objs||[]).map(o=>`<div class="entry-obj-row"><span>${escH(displayObjectName(o.obj))} <span style="opacity:.6">${formatTimeDisplay(o.from)}–${formatTimeDisplay(o.to)}${o.mult?` ×${o.mult}`:''}</span></span><span>${o.hours}${t('week_val')}</span></div>`).join('');
+    const objRows=(e.objs||[]).map(o=>`<div class="entry-obj-row"><span>${escH(displayObjectName(o.obj))}${isVacationObject(o.obj)?'':` <span style="opacity:.6">${formatTimeDisplay(o.from)}–${formatTimeDisplay(o.to)}${o.mult?` ×${o.mult}`:''}</span>`}</span><span>${objectHours(o)}${t('week_val')}</span></div>`).join('');
     const driveRow=e.drive?`<div class="entry-drive">🚗 ${t('add_drive').replace('🚗 ','')}${e.comment?' · '+escH(e.comment):''}</div>`:(e.comment?`<div style="font-size:12px;color:var(--text2);margin-top:4px">${escH(e.comment)}</div>`:'');
     return`<div class="entry-wrap" id="ew-${e.id}">
       <div class="entry-actions" id="ea-${e.id}">
@@ -2397,7 +2404,7 @@ function saveEdit(){
   if(editBlocks.some((b,i)=>{const el=document.getElementById('edit-obj-'+i);if(!b.obj.trim()){if(el)el.classList.add('err-field');return true;}return false;})){toast('⚠️ '+t('err_obj_name'),true);return;}
   if(!validateTimeBlocks(editBlocks,'edit'))return;
   if(editBlocks.some(b=>isVacationObject(b.obj)))editBlocks=editBlocks.filter(b=>isVacationObject(b.obj)).slice(0,1);
-  const newObjs=editBlocks.map((b,i)=>({obj:b.obj.trim(),from:b.from,to:b.to,hours:parseFloat(calcH(b,i===0).toFixed(2)),mult:b.mult||null}));
+  const newObjs=editBlocks.map((b,i)=>isVacationObject(b.obj)?{obj:b.obj.trim(),from:'',to:'',hours:8,mult:null}:{obj:b.obj.trim(),from:b.from,to:b.to,hours:parseFloat(calcH(b,i===0).toFixed(2)),mult:b.mult||null});
   if(hasOverlap(date,newObjs,editId)){toast('⚠️ '+t('err_overlap'),true);return;}
   const idx=data.entries.findIndex(e=>e.id===editId);if(idx<0)return;
   const oldVacationKeys=getVacationObjectKeySet(data.entries[idx]);
@@ -2657,7 +2664,7 @@ function restoreBackup(input){
 }
 function exportData(){const b=new Blob([JSON.stringify(withoutSync(data),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.json';a.click();}
 function csvField(v){const s=v==null?'':String(v);return /[",;\n\r]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}
-function exportCSV(){const rows=[['Data','Objektas','Nuo','Iki','Valandos','Mult','Vairavau','Komentaras']];data.entries.forEach(e=>(e.objs||[]).forEach(o=>rows.push([e.date,o.obj,o.from||'',o.to||'',o.hours,o.mult||'',e.drive?'Taip':'',e.comment||''])));const b=new Blob(['\uFEFF'+rows.map(r=>r.map(csvField).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.csv';a.click();}
+function exportCSV(){const rows=[['Data','Objektas','Nuo','Iki','Valandos','Mult','Vairavau','Komentaras']];data.entries.forEach(e=>(e.objs||[]).forEach(o=>rows.push([e.date,o.obj,o.from||'',o.to||'',objectHours(o),o.mult||'',e.drive?'Taip':'',e.comment||''])));const b=new Blob(['\uFEFF'+rows.map(r=>r.map(csvField).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='darbo-valandos.csv';a.click();}
 function importData(input){const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{data=withoutSync(JSON.parse(e.target.result));save();applyTheme();loadSettings();renderEntries();renderFinances();applyI18n();toast(t('saved_imported'));}catch{toast(t('err_import'),true);}};r.readAsText(file);}
 </script>
 </div>
